@@ -32,8 +32,5 @@ void ACPP_Player::Tick(float DeltaTime)
 void ACPP_Player::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-	//アクターコンポーネントで実装
-	inputManager->SetUpInput(InputComponent);
 }
 

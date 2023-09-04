@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "CPP_InputManager.h"
 #include "CPP_Player.generated.h"
 
 UCLASS()
@@ -26,7 +25,4 @@ private:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-	//“ü—ÍŠÇ—ƒNƒ‰ƒX
-	UCPP_InputManager* inputManager;
 };
