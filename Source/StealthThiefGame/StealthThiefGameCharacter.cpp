@@ -49,6 +49,17 @@ AStealthThiefGameCharacter::AStealthThiefGameCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+
+
+	//メッシュとアニメーションの設定
+	USkeletalMesh* mesh = LoadObject<USkeletalMesh>(nullptr, TEXT("/Game/AnimStarterPack/UE4_Mannequin/Mesh/SK_Mannequin.SK_Mannequin"));
+	GetMesh()->SetSkeletalMesh(mesh);
+
+	UAnimBlueprint* anim = LoadObject<UAnimBlueprint>(nullptr, TEXT("/Game/Animations/ABP_CharacterAnim.ABP_CharacterAnim"));
+	GetMesh()->AnimationBlueprint_DEPRECATED = anim;
+
+	//メッシュの位置と回転の調整
+	GetMesh()->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, -90.0f), FRotator(0.0f, -90.0f, 0.0f));
 }
 
 void AStealthThiefGameCharacter::BeginPlay()
