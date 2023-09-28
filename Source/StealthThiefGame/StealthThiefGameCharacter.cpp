@@ -60,6 +60,12 @@ AStealthThiefGameCharacter::AStealthThiefGameCharacter()
 
 	//ÉÅÉbÉVÉÖÇÃà íuÇ∆âÒì]ÇÃí≤êÆ
 	GetMesh()->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, -90.0f), FRotator(0.0f, -90.0f, 0.0f));
+
+	//AIparceptionÇÃê›íË
+	StimuliSourceComponent = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("StimuliSourceComponent"));
+	StimuliSourceComponent->bAutoRegister = true;
+	StimuliSourceComponent->RegisterForSense(TSubclassOf<UAISense_Sight>());
+	StimuliSourceComponent->RegisterWithPerceptionSystem();
 }
 
 void AStealthThiefGameCharacter::BeginPlay()
