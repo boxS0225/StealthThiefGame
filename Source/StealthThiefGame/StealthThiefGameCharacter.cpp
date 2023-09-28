@@ -63,9 +63,20 @@ AStealthThiefGameCharacter::AStealthThiefGameCharacter()
 
 	//AIparception‚Ìİ’è
 	StimuliSourceComponent = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("StimuliSourceComponent"));
+
+	//“G‚ÌŠ´Šo‚É‰e‹¿‚³‚¹‚é“o˜^
 	StimuliSourceComponent->bAutoRegister = true;
-	StimuliSourceComponent->RegisterForSense(TSubclassOf<UAISense_Sight>());
+	StimuliSourceComponent->RegisterForSense(UAISense_Sight::StaticClass());
 	StimuliSourceComponent->RegisterWithPerceptionSystem();
+
+	//ƒ`[ƒ€ID‚Ìİ’è
+	TeamId = FGenericTeamId(0);
+}
+
+//ƒ`[ƒ€ID‚ğ•Ô‚·
+FGenericTeamId AStealthThiefGameCharacter::GetGenericTeamId() const
+{
+	return TeamId;
 }
 
 void AStealthThiefGameCharacter::BeginPlay()

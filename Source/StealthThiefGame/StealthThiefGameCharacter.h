@@ -5,13 +5,14 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
+#include "GenericTeamAgentInterface.h"
 #include "Perception/AISense_Sight.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "StealthThiefGameCharacter.generated.h"
 
 
 UCLASS(config=Game)
-class AStealthThiefGameCharacter : public ACharacter
+class AStealthThiefGameCharacter : public ACharacter, public IGenericTeamAgentInterface
 {
 	GENERATED_BODY()
 
@@ -41,6 +42,10 @@ class AStealthThiefGameCharacter : public ACharacter
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UAIPerceptionStimuliSourceComponent* StimuliSourceComponent;
+
+	FGenericTeamId TeamId;
+
+	virtual FGenericTeamId GetGenericTeamId() const override;
 
 public:
 	AStealthThiefGameCharacter();
