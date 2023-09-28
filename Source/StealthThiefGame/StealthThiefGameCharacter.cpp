@@ -62,7 +62,7 @@ AStealthThiefGameCharacter::AStealthThiefGameCharacter()
 	GetMesh()->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, -90.0f), FRotator(0.0f, -90.0f, 0.0f));
 
 	//AIparceptionÇÃê›íË
-	StimuliSourceComponent = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("StimuliSourceComponent"));
+	StimuliSourceComponent = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("StimuliSource"));
 
 	//ìGÇÃä¥äoÇ…âeãøÇ≥ÇπÇÈìoò^
 	StimuliSourceComponent->bAutoRegister = true;

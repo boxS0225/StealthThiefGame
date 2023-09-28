@@ -40,11 +40,14 @@ class AStealthThiefGameCharacter : public ACharacter, public IGenericTeamAgentIn
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* LookAction;
 
+	//敵に影響を与える情報リスト
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UAIPerceptionStimuliSourceComponent* StimuliSourceComponent;
 
-	FGenericTeamId TeamId;
+	//チーム分け用変数
+	struct FGenericTeamId TeamId;
 
+	//チーム分け用関数をインターフェースからオーバーライド
 	virtual FGenericTeamId GetGenericTeamId() const override;
 
 public:
