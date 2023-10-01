@@ -36,7 +36,7 @@ void AWeaponBase::BeginPlay()
 	FWeaponStruct* item = WeaponTable->FindRow<FWeaponStruct>(weaponName, "");
 	if (item == nullptr) { return; }
 
-	//取得した構造体からプレイヤーに武器を適用
+	//インターフェースで取得した構造体からプレイヤーに武器を適用
 	ACharacter* playerCharacter = UGameplayStatics::GetPlayerCharacter(this->GetWorld(), 0);
 	if (playerCharacter->Implements<UWeaponInterface>())
 	{

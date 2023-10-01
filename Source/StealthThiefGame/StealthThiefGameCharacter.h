@@ -6,23 +6,23 @@
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
 #include "Components/InputComponent.h"
-#include "GameFramework/Controller.h"
-#include "WeaponInterface.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
+#include "WeaponInterface.h"
 #include "WeaponStruct.h"
 #include "GenericTeamAgentInterface.h"
 #include "Perception/AISense_Sight.h"
+#include "AnimInterface.h"
 #include "Components/TimelineComponent.h"
-#include "WeaponDataTable.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "StealthThiefGameCharacter.generated.h"
 
 
 UCLASS(config=Game)
-class AStealthThiefGameCharacter : public ACharacter, public IGenericTeamAgentInterface, public IWeaponInterface
+class AStealthThiefGameCharacter : public ACharacter, public IGenericTeamAgentInterface, public IWeaponInterface, public IAnimInterface
 {
 	GENERATED_BODY()
 
@@ -85,7 +85,11 @@ class AStealthThiefGameCharacter : public ACharacter, public IGenericTeamAgentIn
 	//武器を持っているか
 	bool hasWeapon;
 
+	//構えているか
 	bool isAim = false;
+
+	//発砲できるか
+	bool canFire = true;
 
 	//連射用タイマー
 	FTimerHandle fireHandle;
@@ -161,7 +165,13 @@ public:
 	//エイムしているかの判断
 	FORCEINLINE void SetIsAim(bool _isAim) { isAim = _isAim; }
 
+	FORCEINLINE void SetCanFire(bool _canFire) { canFire = _canFire; }
+
+	//////////////////////////////////////////////インターフェースの実装
 	//武器を背負う
 	virtual void AttachWeapon_Implementation(const FName _attachSocketName, USkeletalMeshComponent* _mesh) override;
+
+	//発砲可能かの設定
+	void FireCondition_Implementation(const bool _canFire);
 };
 

@@ -29,4 +29,7 @@ public:
 	//武器を持つアニメーション
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "Interface")
 	void AimingState(const bool _isAiming);
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interface")
+	void FireCondition(const bool _canFire);
 };

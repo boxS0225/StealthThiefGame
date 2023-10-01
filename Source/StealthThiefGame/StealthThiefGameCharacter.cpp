@@ -3,7 +3,6 @@
 #include "StealthThiefGameCharacter.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "AnimInterface.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 
@@ -93,12 +92,6 @@ void AStealthThiefGameCharacter::BeginPlay()
 void AStealthThiefGameCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-}
-
-void AStealthThiefGameCharacter::AttachWeapon_Implementation(const FName _attachSocketName, USkeletalMeshComponent* _mesh)
-{
-	weaponMeshs.Emplace(_mesh);
-	_mesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, _attachSocketName);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -191,7 +184,6 @@ void AStealthThiefGameCharacter::Fire_End(const FInputActionValue& _value)
 	timerManager.ClearAllTimersForObject(this);
 
 }
-
 
 //ホイールで切り替え
 void AStealthThiefGameCharacter::WeaponChange(const FInputActionValue& _value)
@@ -306,15 +298,30 @@ void AStealthThiefGameCharacter::Aiming_Releassed(const FInputActionValue& _valu
 	CameraBoom->SetRelativeLocationAndRotation(FVector::ZeroVector, FRotator::ZeroRotator, false, nullptr, ETeleportType::None);
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  Interface
 
 
-//////////////////////////////////////////////////////////////////////////
+void AStealthThiefGameCharacter::AttachWeapon_Implementation(const FName _attachSocketName, USkeletalMeshComponent* _mesh)
+{
+	weaponMeshs.Emplace(_mesh);
+	_mesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, _attachSocketName);
+}
+
+void AStealthThiefGameCharacter::FireCondition_Implementation(const bool _canFire)
+{
+	SetCanFire(_canFire);
+}
 
 //チームIDを返す
+//Implementation書いてないけどoverrideしてる実装処理
 FGenericTeamId AStealthThiefGameCharacter::GetGenericTeamId() const
 {
 	return TeamId;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
 
 void AStealthThiefGameCharacter::FireAnim()
 {
@@ -326,6 +333,8 @@ void AStealthThiefGameCharacter::FireAnim()
 	UGameplayStatics::SpawnEmitterAttached(weaponInfo->FireFlash, equipWeapon, weaponInfo->MuzzleSocketName);
 
 	PlayAnimMontage(weaponInfo->FireMontage);
+
+	GetWorld()->SpawnActor<AActor>(weaponInfo->AmmoClass, equipWeapon->GetSocketTransform(weaponInfo->DropAmmoSocketName));
 }
 
 //武器を装備
@@ -351,6 +360,10 @@ void AStealthThiefGameCharacter::FireProcess()
 	//エイムしていない場合終了
 	if (!isAim) { return; }
 
+	//クールタイムなどで発砲できない場合終了
+	if (!canFire) { return; }
+
+	//武器がない場合終了
 	if (weaponInfo == nullptr) { return; }
 
 	FireAnim();
