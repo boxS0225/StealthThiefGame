@@ -44,6 +44,10 @@ AStealthThiefGameCharacter::AStealthThiefGameCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
+	//カメラオフセット
+	aimVec = FVector(0.f, 100.f, 100.f);
+	aimRot = FRotator(0.f, 30.f, 40.f);
+
 	//メッシュとアニメーションの設定
 	USkeletalMesh* mesh = LoadObject<USkeletalMesh>(nullptr, TEXT("/Game/AnimStarterPack/UE4_Mannequin/Mesh/SK_Mannequin.SK_Mannequin"));
 	GetMesh()->SetSkeletalMesh(mesh);
@@ -116,6 +120,40 @@ void AStealthThiefGameCharacter::AttachWeapon_Implementation(const FName _attach
 //////////////////////////////////////////////////////////////////////////
 // Input
 
+void AStealthThiefGameCharacter::Aiming_Pressed(const FInputActionValue& _value)
+{
+	if (myAnimInstance->Implements<UAnimInterface>())
+	{
+		IAnimInterface::Execute_AimingState(myAnimInstance, true);
+	}
+	//カメラアームを寄せる
+	CameraBoom->TargetArmLength = 150.f;
+
+	//キャラを回転させない
+	GetCharacterMovement()->bOrientRotationToMovement = false;
+	bUseControllerRotationYaw = true;
+
+	//カメラを寄せる
+	CameraBoom->SetRelativeLocationAndRotation(aimVec, aimRot, false, nullptr, ETeleportType::None);
+}
+
+void AStealthThiefGameCharacter::Aiming_Releassed(const FInputActionValue& _value)
+{
+	if (myAnimInstance->Implements<UAnimInterface>())
+	{
+		IAnimInterface::Execute_AimingState(myAnimInstance, false);
+	}
+	//カメラを離す
+	CameraBoom->TargetArmLength = 300.f;
+
+	//キャラを回転させる
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	bUseControllerRotationYaw = false;
+
+	//カメラを離す
+	CameraBoom->SetRelativeLocationAndRotation(FVector::ZeroVector, FRotator::ZeroRotator, false, nullptr,ETeleportType::None);
+}
+
 void AStealthThiefGameCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
 	// Set up action bindings
@@ -138,6 +176,9 @@ void AStealthThiefGameCharacter::SetupPlayerInputComponent(class UInputComponent
 		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Triggered, this, &AStealthThiefGameCharacter::Sprint_Pressed);
 		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &AStealthThiefGameCharacter::Sprint_Released);
 
+		//Aiming
+		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Triggered, this, &AStealthThiefGameCharacter::Aiming_Pressed);
+		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this, &AStealthThiefGameCharacter::Aiming_Releassed);
 	}
 
 }

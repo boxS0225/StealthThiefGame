@@ -22,6 +22,11 @@ class STEALTHTHIEFGAME_API IAnimInterface
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
+	//武器を持つアニメーション
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "Interface")
 	void EquipState(const bool _hasWeapon, const bool _hasPistol);
+
+	//武器を持つアニメーション
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "Interface")
+	void AimingState(const bool _isAiming);
 };

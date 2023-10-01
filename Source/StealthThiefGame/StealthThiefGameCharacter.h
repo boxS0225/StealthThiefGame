@@ -57,8 +57,16 @@ class AStealthThiefGameCharacter : public ACharacter, public IGenericTeamAgentIn
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInputAction> SprintAction;
 
-	//敵に影響を与える情報リスト
+	//エイムアクション
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInputAction> AimAction;
+
+	//エイムオフセット
+	FVector aimVec;
+	FRotator aimRot;
+
+	//敵に影響を与える情報リスト
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = AI, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UAIPerceptionStimuliSourceComponent> StimuliSourceComponent;
 
 	//持っている武器
@@ -108,7 +116,12 @@ protected:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void Sprint_Released(const FInputActionValue& _value);
-			
+
+
+	//エイム用アクション
+	void Aiming_Pressed(const FInputActionValue& _value);
+	void Aiming_Releassed(const FInputActionValue& _value);
+
 
 protected:
 	// APawn interface
