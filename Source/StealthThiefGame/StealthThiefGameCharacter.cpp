@@ -2,7 +2,6 @@
 
 #include "StealthThiefGameCharacter.h"
 #include "Components/CapsuleComponent.h"
-#include "WeaponStruct.h"
 #include "Kismet/GameplayStatics.h"
 #include "AnimInterface.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -48,6 +47,8 @@ AStealthThiefGameCharacter::AStealthThiefGameCharacter()
 	aimVec = FVector(0.f, 100.f, 100.f);
 	aimRot = FRotator(0.f, 30.f, 40.f);
 
+	weaponInfo = nullptr;
+
 	//メッシュとアニメーションの設定
 	USkeletalMesh* mesh = LoadObject<USkeletalMesh>(nullptr, TEXT("/Game/AnimStarterPack/UE4_Mannequin/Mesh/SK_Mannequin.SK_Mannequin"));
 	GetMesh()->SetSkeletalMesh(mesh);
@@ -67,26 +68,9 @@ AStealthThiefGameCharacter::AStealthThiefGameCharacter()
 	TeamId = FGenericTeamId(0);
 
 	//マッピングなどは後から変更するかもしれないからここでは設定しないメッシュは練習で設定しておく
-	LoadObject<UInputAction>(NULL, TEXT(" /Game/ThirdPerson/Input/Actions/IA_Sprint.IA_Sprint"), NULL, LOAD_None, NULL);
 }
 
-//チームIDを返す
-FGenericTeamId AStealthThiefGameCharacter::GetGenericTeamId() const
-{
-	return TeamId;
-}
 
-//武器を装備
-void AStealthThiefGameCharacter::EquipWeapon(const bool _hasWeapon, const FName _socketName, const bool _hasPistol)
-{
-	equipWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, _socketName);
-	hasWeapon = _hasWeapon;
-
-	if (myAnimInstance->Implements<UAnimInterface>())
-	{
-		IAnimInterface::Execute_EquipState(myAnimInstance, hasWeapon, _hasPistol);
-	}
-}
 
 void AStealthThiefGameCharacter::BeginPlay()
 {
@@ -120,40 +104,6 @@ void AStealthThiefGameCharacter::AttachWeapon_Implementation(const FName _attach
 //////////////////////////////////////////////////////////////////////////
 // Input
 
-void AStealthThiefGameCharacter::Aiming_Pressed(const FInputActionValue& _value)
-{
-	if (myAnimInstance->Implements<UAnimInterface>())
-	{
-		IAnimInterface::Execute_AimingState(myAnimInstance, true);
-	}
-	//カメラアームを寄せる
-	CameraBoom->TargetArmLength = 150.f;
-
-	//キャラを回転させない
-	GetCharacterMovement()->bOrientRotationToMovement = false;
-	bUseControllerRotationYaw = true;
-
-	//カメラを寄せる
-	CameraBoom->SetRelativeLocationAndRotation(aimVec, aimRot, false, nullptr, ETeleportType::None);
-}
-
-void AStealthThiefGameCharacter::Aiming_Releassed(const FInputActionValue& _value)
-{
-	if (myAnimInstance->Implements<UAnimInterface>())
-	{
-		IAnimInterface::Execute_AimingState(myAnimInstance, false);
-	}
-	//カメラを離す
-	CameraBoom->TargetArmLength = 300.f;
-
-	//キャラを回転させる
-	GetCharacterMovement()->bOrientRotationToMovement = true;
-	bUseControllerRotationYaw = false;
-
-	//カメラを離す
-	CameraBoom->SetRelativeLocationAndRotation(FVector::ZeroVector, FRotator::ZeroRotator, false, nullptr,ETeleportType::None);
-}
-
 void AStealthThiefGameCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
 	// Set up action bindings
@@ -179,6 +129,10 @@ void AStealthThiefGameCharacter::SetupPlayerInputComponent(class UInputComponent
 		//Aiming
 		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Triggered, this, &AStealthThiefGameCharacter::Aiming_Pressed);
 		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this, &AStealthThiefGameCharacter::Aiming_Releassed);
+
+		//Fire
+		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &AStealthThiefGameCharacter::Fire_Start);
+		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &AStealthThiefGameCharacter::Fire_End);
 	}
 
 }
@@ -219,6 +173,26 @@ void AStealthThiefGameCharacter::Look(const FInputActionValue& _value)
 	}
 }
 
+void AStealthThiefGameCharacter::Fire_Start(const FInputActionValue& _value)
+{
+	//タイマーのスタート(バインドする関数と、何秒区切りかと、ループするか)
+	GetWorldTimerManager().SetTimer(fireHandle, this, &AStealthThiefGameCharacter::FireProcess, 0.1f, true);
+
+}
+
+void AStealthThiefGameCharacter::Fire_End(const FInputActionValue& _value)
+{
+	FTimerManager& timerManager = GetWorldTimerManager();
+
+	// Handleに登録されたTimerの解放
+	timerManager.ClearTimer(fireHandle);
+
+	// このActorが所有するタイマーの解放
+	timerManager.ClearAllTimersForObject(this);
+
+}
+
+
 //ホイールで切り替え
 void AStealthThiefGameCharacter::WeaponChange(const FInputActionValue& _value)
 {
@@ -233,14 +207,15 @@ void AStealthThiefGameCharacter::WeaponChange(const FInputActionValue& _value)
 		//持っている武器リストから取得
 		equipWeapon = weaponMeshs[equipWeaponNum];
 		FName weapon = equipWeapon->ComponentTags[0];
-		FWeaponStruct* item = WeaponTable->FindRow<FWeaponStruct>(weapon, "");
-		if (item == nullptr) { return; }
+		weaponInfo = WeaponTable->FindRow<FWeaponStruct>(weapon, "");
+		if (weaponInfo == nullptr) { return; }
+
 
 		//手に持つ
-		EquipWeapon(true, item->EquipWeaponSocket, item->HasPistol);
+		EquipWeapon(true, weaponInfo->EquipWeaponSocketName, weaponInfo->HasPistol);
 
 		//武器チェンジ音を鳴らす
-		UGameplayStatics::PlaySoundAtLocation(GetWorld(), item->EquipSound, GetActorLocation());
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), weaponInfo->EquipSound, GetActorLocation());
 
 		//次の武器へ移動
 		equipWeaponCounter++;
@@ -284,12 +259,99 @@ void AStealthThiefGameCharacter::WeaponChange(const FInputActionValue& _value)
 		FWeaponStruct* item = WeaponTable->FindRow<FWeaponStruct>(weapon, "");
 		if (item == nullptr) { return; }
 
+		//武器を外す
+		weaponInfo = nullptr;
+
 		//手から外して固定位置へ
 		EquipWeapon(false, item->WeaponSocketName, item->HasPistol);
 
 	}
 }
 
+void AStealthThiefGameCharacter::Aiming_Pressed(const FInputActionValue& _value)
+{
+	SetIsAim(true);
+
+	if (myAnimInstance->Implements<UAnimInterface>())
+	{
+		IAnimInterface::Execute_AimingState(myAnimInstance, true);
+	}
+	//カメラアームを寄せる
+	CameraBoom->TargetArmLength = 150.f;
+
+	//キャラを回転させない
+	GetCharacterMovement()->bOrientRotationToMovement = false;
+	bUseControllerRotationYaw = true;
+
+	//カメラを寄せる
+	CameraBoom->SetRelativeLocationAndRotation(aimVec, aimRot, false, nullptr, ETeleportType::None);
+}
+
+void AStealthThiefGameCharacter::Aiming_Releassed(const FInputActionValue& _value)
+{
+	SetIsAim(false);
+
+	if (myAnimInstance->Implements<UAnimInterface>())
+	{
+		IAnimInterface::Execute_AimingState(myAnimInstance, false);
+	}
+	//カメラを離す
+	CameraBoom->TargetArmLength = 300.f;
+
+	//キャラを回転させる
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	bUseControllerRotationYaw = false;
+
+	//カメラを離す
+	CameraBoom->SetRelativeLocationAndRotation(FVector::ZeroVector, FRotator::ZeroRotator, false, nullptr, ETeleportType::None);
+}
 
 
 
+//////////////////////////////////////////////////////////////////////////
+
+//チームIDを返す
+FGenericTeamId AStealthThiefGameCharacter::GetGenericTeamId() const
+{
+	return TeamId;
+}
+
+void AStealthThiefGameCharacter::FireAnim()
+{
+	//音を鳴らす
+	//UGameplayStatics::PlaySoundAtLocation(GetWorld(), weaponInfo->FireSound, GetActorLocation(), 1.f, 1.f, 0.f);
+	UGameplayStatics::PlaySound2D(GetWorld(), weaponInfo->FireSound);
+
+	//マズルフラッシュを生成
+	UGameplayStatics::SpawnEmitterAttached(weaponInfo->FireFlash, equipWeapon, weaponInfo->MuzzleSocketName);
+
+	PlayAnimMontage(weaponInfo->FireMontage);
+}
+
+//武器を装備
+void AStealthThiefGameCharacter::EquipWeapon(const bool _hasWeapon, const FName _socketName, const bool _hasPistol)
+{
+	equipWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, _socketName);
+	hasWeapon = _hasWeapon;
+
+	if (myAnimInstance->Implements<UAnimInterface>())
+	{
+		IAnimInterface::Execute_EquipState(myAnimInstance, hasWeapon, _hasPistol);
+	}
+}
+
+void AStealthThiefGameCharacter::FireProcess()
+{
+	//地面にいない場合終了
+	if (!GetCharacterMovement()->IsMovingOnGround()) { return; }
+
+	//武器を持っていない場合終了
+	if (!hasWeapon) { return; }
+
+	//エイムしていない場合終了
+	if (!isAim) { return; }
+
+	if (weaponInfo == nullptr) { return; }
+
+	FireAnim();
+}

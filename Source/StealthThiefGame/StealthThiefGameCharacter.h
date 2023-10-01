@@ -12,6 +12,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
+#include "WeaponStruct.h"
 #include "GenericTeamAgentInterface.h"
 #include "Perception/AISense_Sight.h"
 #include "Components/TimelineComponent.h"
@@ -61,6 +62,10 @@ class AStealthThiefGameCharacter : public ACharacter, public IGenericTeamAgentIn
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInputAction> AimAction;
 
+	//発砲アクション
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInputAction> FireAction;
+
 	//エイムオフセット
 	FVector aimVec;
 	FRotator aimRot;
@@ -70,13 +75,20 @@ class AStealthThiefGameCharacter : public ACharacter, public IGenericTeamAgentIn
 	TObjectPtr<UAIPerceptionStimuliSourceComponent> StimuliSourceComponent;
 
 	//持っている武器
-	TArray<USkeletalMeshComponent*> weaponMeshs;
+	TArray<TObjectPtr<USkeletalMeshComponent>> weaponMeshs;
+
+	TObjectPtr<USkeletalMeshComponent> equipWeapon;
 
 	int equipWeaponNum = 0;
 	int equipWeaponCounter = 0;
 
 	//武器を持っているか
 	bool hasWeapon;
+
+	bool isAim = false;
+
+	//連射用タイマー
+	FTimerHandle fireHandle;
 
 	//自身のアニメーション
 	TObjectPtr<UAnimInstance> myAnimInstance;
@@ -85,7 +97,7 @@ class AStealthThiefGameCharacter : public ACharacter, public IGenericTeamAgentIn
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UDataTable> WeaponTable;
 
-	TObjectPtr<USkeletalMeshComponent> equipWeapon;
+	FWeaponStruct* weaponInfo;
 
 	//チーム分け用変数
 	struct FGenericTeamId TeamId;
@@ -95,6 +107,12 @@ class AStealthThiefGameCharacter : public ACharacter, public IGenericTeamAgentIn
 
 	//武器を装備
 	void EquipWeapon(const bool _hasWeapon,const FName _socketNamem, const bool _hasPistol);
+
+	//発砲処理
+	void FireProcess();
+
+	//発砲アニメーション
+	void FireAnim();
 
 public:
 	AStealthThiefGameCharacter();
@@ -122,6 +140,9 @@ protected:
 	void Aiming_Pressed(const FInputActionValue& _value);
 	void Aiming_Releassed(const FInputActionValue& _value);
 
+	//発砲アクション
+	void Fire_Start(const FInputActionValue& _value);
+	void Fire_End(const FInputActionValue& _value);
 
 protected:
 	// APawn interface
@@ -137,6 +158,8 @@ public:
 	FORCEINLINE TObjectPtr<USpringArmComponent> GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE TObjectPtr<UCameraComponent> GetFollowCamera() const { return FollowCamera; }
+	//エイムしているかの判断
+	FORCEINLINE void SetIsAim(bool _isAim) { isAim = _isAim; }
 
 	//武器を背負う
 	virtual void AttachWeapon_Implementation(const FName _attachSocketName, USkeletalMeshComponent* _mesh) override;

@@ -5,5 +5,6 @@
 
 FWeaponStruct::FWeaponStruct()
 {
-	EquipWeaponSocket = TEXT("EquipWeaponSocket");
+	EquipWeaponSocketName = TEXT("EquipWeaponSocket");
+	MuzzleSocketName = TEXT("MuzzleFlash");
 }
