@@ -79,6 +79,10 @@ void AStealthThiefGameCharacter::BeginPlay()
 	//アニメーションインスタンスのゲット
 	myAnimInstance = GetMesh()->GetAnimInstance();
 
+	//ウィジェットインスタンスの生成
+	if (WidgetClass == nullptr) { return; }
+	currentWidget = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), WidgetClass);
+
 	//Add Input Mapping Context
 	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
 	{
@@ -277,6 +281,11 @@ void AStealthThiefGameCharacter::Aiming_Pressed(const FInputActionValue& _value)
 
 	//カメラを寄せる
 	CameraBoom->SetRelativeLocationAndRotation(aimVec, aimRot, false, nullptr, ETeleportType::None);
+	
+	if (currentWidget == nullptr) { return; }
+
+	//ウィジェットの追加
+	currentWidget->AddToViewport();
 }
 
 void AStealthThiefGameCharacter::Aiming_Releassed(const FInputActionValue& _value)
@@ -296,6 +305,10 @@ void AStealthThiefGameCharacter::Aiming_Releassed(const FInputActionValue& _valu
 
 	//カメラを離す
 	CameraBoom->SetRelativeLocationAndRotation(FVector::ZeroVector, FRotator::ZeroRotator, false, nullptr, ETeleportType::None);
+
+	if (currentWidget == nullptr) { return; }
+
+	currentWidget->RemoveFromParent();
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -332,9 +345,20 @@ void AStealthThiefGameCharacter::FireAnim()
 	//マズルフラッシュを生成
 	UGameplayStatics::SpawnEmitterAttached(weaponInfo->FireFlash, equipWeapon, weaponInfo->MuzzleSocketName);
 
+	//反動アニメーション再生
 	PlayAnimMontage(weaponInfo->FireMontage);
 
+	//薬莢生成
 	GetWorld()->SpawnActor<AActor>(weaponInfo->AmmoClass, equipWeapon->GetSocketTransform(weaponInfo->DropAmmoSocketName));
+
+	FVector boomVec = CameraBoom->GetComponentLocation();
+	FVector fwdVec = CameraBoom->GetForwardVector();
+
+	fwdVec *= 10000.f;
+
+	FHitResult hit;
+
+	GetWorld()->LineTraceSingleByChannel(hit, boomVec, boomVec + fwdVec, ECollisionChannel::ECC_Visibility);
 }
 
 //武器を装備

@@ -18,6 +18,7 @@
 #include "AnimInterface.h"
 #include "Components/TimelineComponent.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
+#include "Blueprint/UserWidget.h"
 #include "StealthThiefGameCharacter.generated.h"
 
 
@@ -65,6 +66,12 @@ class AStealthThiefGameCharacter : public ACharacter, public IGenericTeamAgentIn
 	//発砲アクション
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInputAction> FireAction;
+
+	//ポインター
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UUserWidget> WidgetClass;
+
+	TObjectPtr<UUserWidget> currentWidget;
 
 	//エイムオフセット
 	FVector aimVec;
