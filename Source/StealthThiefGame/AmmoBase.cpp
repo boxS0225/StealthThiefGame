@@ -15,17 +15,17 @@ AAmmoBase::AAmmoBase()
 	DefaultSceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("DefaultSceneComponent"));
 
 	// SceneComponentをRootComponentに設定する
-	RootComponent = DefaultSceneRoot;
+	SetRootComponent(DefaultSceneRoot);
 
 	//メッシュを作成
-	AmmoMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
+	SetAmmoMesh(CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent")));
 
 	//物理挙動をするようにする
-	AmmoMesh->SetSimulatePhysics(true);
-	AmmoMesh->SetMassOverrideInKg(NAME_None, 0.01f, true);
+	GetAmmoMesh()->SetSimulatePhysics(true);
+	GetAmmoMesh()->SetMassOverrideInKg(NAME_None, 0.01f, true);
 
 	//ルートの下に配置
-	AmmoMesh->SetupAttachment(RootComponent);
+	GetAmmoMesh()->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
@@ -42,7 +42,7 @@ void AAmmoBase::BeginPlay()
 
 	rightVec *= randVol;
 
-	AmmoMesh->AddImpulse(rightVec);
+	GetAmmoMesh()->AddImpulse(rightVec);
 
 	//タイマーのスタート(バインドする関数と、何秒区切りかと、ループするか)
 	GetWorldTimerManager().SetTimer(fireHandle, this, &AAmmoBase::DeleteAmmo, 10.f, false);

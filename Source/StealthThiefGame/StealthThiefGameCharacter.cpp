@@ -32,15 +32,15 @@ AStealthThiefGameCharacter::AStealthThiefGameCharacter()
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 
 	// Create a camera boom (pulls in towards the player if there is a collision)
-	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 400.0f; // The camera follows at this distance behind the character	
-	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
+	SetCameraBoom(CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom")));
+	GetCameraBoom()->SetupAttachment(RootComponent);
+	GetCameraBoom()->TargetArmLength = 400.0f; // The camera follows at this distance behind the character	
+	GetCameraBoom()->bUsePawnControlRotation = true; // Rotate the arm based on the controller
 
 	// Create a follow camera
-	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
-	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
-	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
+	SetFollowCamera(CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera")));
+	GetFollowCamera()->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
+	GetFollowCamera()->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
 	//カメラオフセット
 	aimVec = FVector(0.f, 100.f, 100.f);
@@ -56,12 +56,12 @@ AStealthThiefGameCharacter::AStealthThiefGameCharacter()
 	GetMesh()->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, -90.0f), FRotator(0.0f, -90.0f, 0.0f));
 
 	//AIparceptionの設定
-	StimuliSourceComponent = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("StimuliSource"));
+	SetStimuliSourceComponent(CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("StimuliSource")));
 
 	//敵の感覚に影響させる登録
-	StimuliSourceComponent->bAutoRegister = true;
-	StimuliSourceComponent->RegisterForSense(UAISense_Sight::StaticClass());
-	StimuliSourceComponent->RegisterWithPerceptionSystem();
+	GetStimuliSourceComponent()->bAutoRegister = true;
+	GetStimuliSourceComponent()->RegisterForSense(UAISense_Sight::StaticClass());
+	GetStimuliSourceComponent()->RegisterWithPerceptionSystem();
 
 	//チームIDの設定
 	TeamId = FGenericTeamId(0);
@@ -77,7 +77,7 @@ void AStealthThiefGameCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	//アニメーションインスタンスのゲット
-	myAnimInstance = GetMesh()->GetAnimInstance();
+	SetMyAnimInstance(GetMesh()->GetAnimInstance());
 
 	//ウィジェットインスタンスの生成
 	if (WidgetClass == nullptr) { return; }
@@ -203,7 +203,7 @@ void AStealthThiefGameCharacter::WeaponChange(const FInputActionValue& _value)
 		//持っている武器リストから取得
 		equipWeapon = weaponMeshs[equipWeaponNum];
 		FName weapon = equipWeapon->ComponentTags[0];
-		weaponInfo = WeaponTable->FindRow<FWeaponStruct>(weapon, "");
+		weaponInfo = GetWeaponTable()->FindRow<FWeaponStruct>(weapon, "");
 		if (weaponInfo == nullptr) { return; }
 
 
@@ -252,7 +252,7 @@ void AStealthThiefGameCharacter::WeaponChange(const FInputActionValue& _value)
 		//持っている武器リストから取得
 		equipWeapon = weaponMeshs[num];
 		FName weapon = equipWeapon->ComponentTags[0];
-		FWeaponStruct* item = WeaponTable->FindRow<FWeaponStruct>(weapon, "");
+		FWeaponStruct* item = GetWeaponTable()->FindRow<FWeaponStruct>(weapon, "");
 		if (item == nullptr) { return; }
 
 		//武器を外す
@@ -268,19 +268,19 @@ void AStealthThiefGameCharacter::Aiming_Pressed(const FInputActionValue& _value)
 {
 	SetIsAim(true);
 
-	if (myAnimInstance->Implements<UAnimInterface>())
+	if (GetMyAnimInstance()->Implements<UAnimInterface>())
 	{
 		IAnimInterface::Execute_AimingState(myAnimInstance, true);
 	}
 	//カメラアームを寄せる
-	CameraBoom->TargetArmLength = 150.f;
+	GetCameraBoom()->TargetArmLength = 150.f;
 
 	//キャラを回転させない
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 	bUseControllerRotationYaw = true;
 
 	//カメラを寄せる
-	CameraBoom->SetRelativeLocationAndRotation(aimVec, aimRot, false, nullptr, ETeleportType::None);
+	GetCameraBoom()->SetRelativeLocationAndRotation(aimVec, aimRot, false, nullptr, ETeleportType::None);
 	
 	if (currentWidget == nullptr) { return; }
 
@@ -292,19 +292,19 @@ void AStealthThiefGameCharacter::Aiming_Releassed(const FInputActionValue& _valu
 {
 	SetIsAim(false);
 
-	if (myAnimInstance->Implements<UAnimInterface>())
+	if (GetMyAnimInstance()->Implements<UAnimInterface>())
 	{
 		IAnimInterface::Execute_AimingState(myAnimInstance, false);
 	}
 	//カメラを離す
-	CameraBoom->TargetArmLength = 300.f;
+	GetCameraBoom()->TargetArmLength = 300.f;
 
 	//キャラを回転させる
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	bUseControllerRotationYaw = false;
 
 	//カメラを離す
-	CameraBoom->SetRelativeLocationAndRotation(FVector::ZeroVector, FRotator::ZeroRotator, false, nullptr, ETeleportType::None);
+	GetCameraBoom()->SetRelativeLocationAndRotation(FVector::ZeroVector, FRotator::ZeroRotator, false, nullptr, ETeleportType::None);
 
 	if (currentWidget == nullptr) { return; }
 
@@ -317,7 +317,9 @@ void AStealthThiefGameCharacter::Aiming_Releassed(const FInputActionValue& _valu
 
 void AStealthThiefGameCharacter::AttachWeapon_Implementation(const FName _attachSocketName, USkeletalMeshComponent* _mesh)
 {
+	//持っている武器のリストを追加
 	weaponMeshs.Emplace(_mesh);
+	//背負う
 	_mesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, _attachSocketName);
 }
 
@@ -351,14 +353,12 @@ void AStealthThiefGameCharacter::FireAnim()
 	//薬莢生成
 	GetWorld()->SpawnActor<AActor>(weaponInfo->AmmoClass, equipWeapon->GetSocketTransform(weaponInfo->DropAmmoSocketName));
 
-	FVector boomVec = CameraBoom->GetComponentLocation();
-	FVector fwdVec = CameraBoom->GetForwardVector();
-
-	fwdVec *= 10000.f;
-
-	FHitResult hit;
-
-	GetWorld()->LineTraceSingleByChannel(hit, boomVec, boomVec + fwdVec, ECollisionChannel::ECC_Visibility);
+	//中心に弾が出るかの確認
+	//FVector boomVec = GetCameraBoom()->GetComponentLocation();
+	//FVector fwdVec = GetCameraBoom()->GetForwardVector();
+	//fwdVec *= 10000.f;
+	//FHitResult hit;
+	//GetWorld()->LineTraceSingleByChannel(hit, boomVec, boomVec + fwdVec, ECollisionChannel::ECC_Visibility);
 }
 
 //武器を装備
@@ -367,9 +367,9 @@ void AStealthThiefGameCharacter::EquipWeapon(const bool _hasWeapon, const FName 
 	equipWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, _socketName);
 	hasWeapon = _hasWeapon;
 
-	if (myAnimInstance->Implements<UAnimInterface>())
+	if (GetMyAnimInstance()->Implements<UAnimInterface>())
 	{
-		IAnimInterface::Execute_EquipState(myAnimInstance, hasWeapon, _hasPistol);
+		IAnimInterface::Execute_EquipState(GetMyAnimInstance(), hasWeapon, _hasPistol);
 	}
 }
 
