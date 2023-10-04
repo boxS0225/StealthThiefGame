@@ -194,7 +194,7 @@ void AStealthThiefGameCharacter::WeaponChange(const FInputActionValue& _value)
 {
 	//スクロールを獲得
 	float upDown = _value.Get<float>();
-
+	
 	//番号の更新
 	equipWeaponNum = equipWeaponCounter;
 
