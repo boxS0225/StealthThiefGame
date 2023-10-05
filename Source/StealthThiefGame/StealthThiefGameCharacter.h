@@ -118,6 +118,11 @@ class AStealthThiefGameCharacter : public ACharacter, public IGenericTeamAgentIn
 	//武器を装備
 	void EquipWeapon(const bool _hasWeapon,const FName _socketNamem, const bool _hasPistol);
 
+	//ウィジェットをインスタンスにする
+	void CreateWidgetInstance();
+
+	FWeaponStruct* SarchWeapon(TArray<TObjectPtr<USkeletalMeshComponent>> _meshs, int _num);
+
 	//発砲処理
 	void FireProcess();
 
@@ -184,6 +189,7 @@ public:
 
 	FORCEINLINE TObjectPtr<UDataTable> GetWeaponTable() const { return WeaponTable; }
 
+	FORCEINLINE TSubclassOf<UUserWidget> GetWidgetClass() const { return WidgetClass; }
 	//////////////////////////////////////////////インターフェースの実装
 	//武器を背負う
 	virtual void AttachWeapon_Implementation(const FName _attachSocketName, USkeletalMeshComponent* _mesh) override;

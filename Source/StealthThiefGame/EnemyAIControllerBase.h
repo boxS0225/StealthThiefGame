@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AIController.h"
+#include "StealthThiefGameGameMode.h"
 #include "EnemyAIControllerBase.generated.h"
 
 /**
@@ -27,6 +28,7 @@ protected:
 
 public:
 
+	//ツリーのゲッター・セッター・Nullチェック
 	FORCEINLINE TObjectPtr<UBehaviorTree> GetMyBehaviorTree() const { return MyBehaviorTree; }
 	FORCEINLINE bool SetMyBehaviorTree(const TObjectPtr<UBehaviorTree> _tree) { MyBehaviorTree = _tree; return MyBehaviorTree != nullptr; }
 };

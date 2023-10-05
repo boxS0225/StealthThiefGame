@@ -21,31 +21,35 @@ AEnemyBase::AEnemyBase()
 	bUseControllerRotationRoll = false;
 
 	// Configure character movement
-	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
-	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
+	auto charaMove = GetCharacterMovement();
+	charaMove->bOrientRotationToMovement = true; // Character moves in the direction of input...	
+	charaMove->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
 
 	// Note: For faster iteration times these variables, and many more, can be tweaked in the Character Blueprint
 	// instead of recompiling to adjust them
-	GetCharacterMovement()->JumpZVelocity = 700.f;
-	GetCharacterMovement()->AirControl = 0.35f;
-	GetCharacterMovement()->MaxWalkSpeed = 300.f;
-	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
-	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
+	charaMove->JumpZVelocity = 700.f;
+	charaMove->AirControl = 0.35f;
+	charaMove->MaxWalkSpeed = 300.f;
+	charaMove->MinAnalogWalkSpeed = 20.f;
+	charaMove->BrakingDecelerationWalking = 2000.f;
 
 	//メッシュの設定
+	auto mesh = GetMesh();
 	USkeletalMesh* bodyMesh = LoadObject<USkeletalMesh>(nullptr, TEXT("/Game/AnimStarterPack/UE4_Mannequin/Mesh/SK_Mannequin.SK_Mannequin"));
-	GetMesh()->SetSkeletalMesh(bodyMesh);
+	mesh->SetSkeletalMesh(bodyMesh);
 	
 	//メッシュの位置と回転の調整
-	GetMesh()->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, -90.0f), FRotator(0.0f, -90.0f, 0.0f));
+	mesh->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, -90.0f), FRotator(0.0f, -90.0f, 0.0f));
 
 	//武器メッシュの生成
-	SetWeaponMesh(CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMwsh")));
-	USkeletalMesh* weaponMesh = LoadObject<USkeletalMesh>(nullptr, TEXT("/Game/MilitaryWeapSilver/Weapons/Assault_Rifle_A.Assault_Rifle_A"));
-	GetWeaponMesh()->SetSkeletalMesh(weaponMesh);
+	auto weaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMwsh"));
+
+	SetWeaponMesh(weaponMesh);
+	USkeletalMesh* weaponSkMesh = LoadObject<USkeletalMesh>(nullptr, TEXT("/Game/MilitaryWeapSilver/Weapons/Assault_Rifle_A.Assault_Rifle_A"));
+	weaponMesh->SetSkeletalMesh(weaponSkMesh);
 
 	//武器メッシュの配置
-	GetWeaponMesh()->SetupAttachment(GetMesh());
+	weaponMesh->SetupAttachment(mesh);
 }
 
 // Called when the game starts or when spawned
@@ -53,13 +57,7 @@ void AEnemyBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//ライフルを装備
-	FName weapon = TEXT("Rifle");
-	if (GetWeaponTable() == nullptr) { return; }
-	FWeaponStruct* item = GetWeaponTable()->FindRow<FWeaponStruct>(weapon, "");
-	if (item == nullptr) { return; }
-
-	GetWeaponMesh()->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, item->EquipWeaponSocketName);
+	EquipWeapon(TEXT("Rifle"));
 }
 
 // Called every frame
@@ -69,3 +67,19 @@ void AEnemyBase::Tick(float DeltaTime)
 
 }
 
+void AEnemyBase::EquipWeapon(FName _weapon)
+{
+	auto weaponTable = GetWeaponTable();
+
+	//Nullチェック
+	AStealthThiefGameGameMode::CheckPointerContent<UDataTable>(weaponTable);
+
+	//ライフルを装備
+	FWeaponStruct* item = weaponTable->FindRow<FWeaponStruct>(_weapon, "");
+
+	//存在するかチェック
+	AStealthThiefGameGameMode::CheckPointerContent<FWeaponStruct>(item);
+	
+	//セット
+	GetWeaponMesh()->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, item->EquipWeaponSocketName);
+}

@@ -2,6 +2,7 @@
 
 
 #include "EnemyAIControllerBase.h"
+#include "StealthThiefGameGameMode.h"
 
 AEnemyAIControllerBase::AEnemyAIControllerBase()
 {
@@ -10,6 +11,10 @@ AEnemyAIControllerBase::AEnemyAIControllerBase()
 
 void AEnemyAIControllerBase::BeginPlay()
 {
-	if (GetMyBehaviorTree() == nullptr) { return; }
-	RunBehaviorTree(GetMyBehaviorTree());
+	TObjectPtr<UBehaviorTree> tree = GetMyBehaviorTree();
+
+	//ツリーのNULLチェック
+	AStealthThiefGameGameMode::CheckPointerContent<UBehaviorTree>(tree);
+	//ツリーを起動
+	RunBehaviorTree(tree);
 }

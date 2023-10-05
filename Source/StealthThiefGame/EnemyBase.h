@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "StealthThiefGameGameMode.h"
 #include "GameFramework/Character.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "EnemyAIControllerBase.h"
@@ -20,6 +21,9 @@ class AEnemyBase : public ACharacter
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = DataTable, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UDataTable> WeaponTable;
+
+	//•Ší‘•’…
+	void EquipWeapon(FName _weapon);
 
 public:
 	// Sets default values for this character's properties
