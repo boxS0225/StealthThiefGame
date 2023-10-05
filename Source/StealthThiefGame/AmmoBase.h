@@ -32,5 +32,7 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
-	
+
+	FORCEINLINE TObjectPtr<UStaticMeshComponent> GetAmmoMesh() const { return AmmoMesh; }
+	FORCEINLINE bool SetAmmoMesh(const TObjectPtr<UStaticMeshComponent> _mesh) { AmmoMesh = _mesh; return AmmoMesh != nullptr; }
 };

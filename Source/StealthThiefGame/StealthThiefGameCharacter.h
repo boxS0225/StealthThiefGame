@@ -16,7 +16,6 @@
 #include "GenericTeamAgentInterface.h"
 #include "Perception/AISense_Sight.h"
 #include "AnimInterface.h"
-#include "Components/TimelineComponent.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "Blueprint/UserWidget.h"
 #include "StealthThiefGameCharacter.generated.h"
@@ -68,7 +67,7 @@ class AStealthThiefGameCharacter : public ACharacter, public IGenericTeamAgentIn
 	TObjectPtr<UInputAction> FireAction;
 
 	//ポインター
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Widget, meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UUserWidget> WidgetClass;
 
 	TObjectPtr<UUserWidget> currentWidget;
@@ -105,7 +104,7 @@ class AStealthThiefGameCharacter : public ACharacter, public IGenericTeamAgentIn
 	TObjectPtr<UAnimInstance> myAnimInstance;
 
 	//装備品データ
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = DataTable, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UDataTable> WeaponTable;
 
 	FWeaponStruct* weaponInfo;
@@ -167,12 +166,23 @@ public:
 
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE TObjectPtr<USpringArmComponent> GetCameraBoom() const { return CameraBoom; }
+	FORCEINLINE bool SetCameraBoom(const TObjectPtr<USpringArmComponent> _cameraArm) { CameraBoom = _cameraArm; return CameraBoom != nullptr; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE TObjectPtr<UCameraComponent> GetFollowCamera() const { return FollowCamera; }
-	//エイムしているかの判断
-	FORCEINLINE void SetIsAim(bool _isAim) { isAim = _isAim; }
+	FORCEINLINE bool SetFollowCamera(const TObjectPtr<UCameraComponent> _camera) { FollowCamera = _camera; return FollowCamera != nullptr; }
 
-	FORCEINLINE void SetCanFire(bool _canFire) { canFire = _canFire; }
+	FORCEINLINE void SetCanFire(const bool _canFire) { canFire = _canFire; }
+
+	//エイムしているかの判断
+	FORCEINLINE void SetIsAim(const bool _isAim) { isAim = _isAim; }
+
+	FORCEINLINE TObjectPtr<UAnimInstance> GetMyAnimInstance() const { return myAnimInstance; }
+	FORCEINLINE bool SetMyAnimInstance(const TObjectPtr<UAnimInstance> _anim) { myAnimInstance = _anim; return myAnimInstance != nullptr; }
+
+	FORCEINLINE TObjectPtr<UAIPerceptionStimuliSourceComponent> GetStimuliSourceComponent() const { return StimuliSourceComponent; }
+	FORCEINLINE bool SetStimuliSourceComponent(const TObjectPtr<UAIPerceptionStimuliSourceComponent> _source) { StimuliSourceComponent = _source; return StimuliSourceComponent != nullptr; }
+
+	FORCEINLINE TObjectPtr<UDataTable> GetWeaponTable() const { return WeaponTable; }
 
 	//////////////////////////////////////////////インターフェースの実装
 	//武器を背負う

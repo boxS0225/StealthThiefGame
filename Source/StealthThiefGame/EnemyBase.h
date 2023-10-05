@@ -4,12 +4,22 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "EnemyAIControllerBase.h"
+#include "WeaponStruct.h"
 #include "EnemyBase.generated.h"
 
 UCLASS()
-class STEALTHTHIEFGAME_API AEnemyBase : public ACharacter
+class AEnemyBase : public ACharacter
 {
 	GENERATED_BODY()
+
+	//ïêäÌÉÅÉbÉVÉÖ
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Mesh, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<USkeletalMeshComponent> WeaponMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = DataTable, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UDataTable> WeaponTable;
 
 public:
 	// Sets default values for this character's properties
@@ -24,6 +34,9 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	FORCEINLINE TObjectPtr<USkeletalMeshComponent> GetWeaponMesh() const { return WeaponMesh; }
+	FORCEINLINE bool SetWeaponMesh(const TObjectPtr<USkeletalMeshComponent> _mesh) { WeaponMesh = _mesh; return WeaponMesh != nullptr; }
+
+	FORCEINLINE TObjectPtr<UDataTable> GetWeaponTable() const { return WeaponTable; }
 };
