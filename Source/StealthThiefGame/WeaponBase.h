@@ -4,8 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "WeaponDataTable.h"
 #include "Components/SkeletalMeshComponent.h"
+#include "Engine/DataTable.h"
 #include "WeaponBase.generated.h"
 
 UCLASS()
