@@ -5,6 +5,7 @@
 #include "WeaponStruct.h"
 #include "Kismet/GameplayStatics.h"
 #include "WeaponInterface.h"
+#include "StealthThiefGameGameMode.h"
 #include "StealthThiefGameCharacter.h"
 
 // Sets default values
@@ -34,7 +35,7 @@ void AWeaponBase::BeginPlay()
 	//DataTableから構造体取得
 	FName weaponName = WeaponMesh->ComponentTags[0];
 	FWeaponStruct* item = WeaponTable->FindRow<FWeaponStruct>(weaponName, "");
-	if (item == nullptr) { return; }
+	AStealthThiefGameGameMode::CheckPointerContent<FWeaponStruct>(item);
 
 	//インターフェースで取得した構造体からプレイヤーに武器を適用
 	ACharacter* playerCharacter = UGameplayStatics::GetPlayerCharacter(this->GetWorld(), 0);

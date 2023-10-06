@@ -309,7 +309,7 @@ void AStealthThiefGameCharacter::Aiming_Releassed(const FInputActionValue& _valu
 
 	//ウィジェットの削除
 	AStealthThiefGameGameMode::CheckPointerContent<UUserWidget>(currentWidget);
-	currentWidget->RemoveFromParent();
+	currentWidget->RemoveFromViewport();
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
