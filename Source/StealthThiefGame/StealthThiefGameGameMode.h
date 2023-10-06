@@ -21,15 +21,15 @@ public:
 
 	//空配列かチェック
 	template<typename T>
-	static void CheckArraySize(const TArray<T> _val) { checkf(IsEmptyArray(_val.Num()), TEXT("NullArrayException")); }
+	static void CheckArraySize(const TArray<T> _val) { ensureAlwaysMsgf(IsEmptyArray(_val.Num()), TEXT("NullArrayException")); }
 
 	//配列外に行ったかチェック
 	template<typename T>
-	static void CheckOutOfBounds(const int _num, const TArray<T> _val) { checkf(IsOutOfBounds(_num, _val.Num()), TEXT("IndexOutOfBoundsException")); }
+	static void CheckOutOfBounds(const int _num, const TArray<T> _val) { ensureAlwaysMsgf(IsOutOfBounds(_num, _val.Num()), TEXT("IndexOutOfBoundsException")); }
 
 	//Nullチェック
 	template<typename T>
-	static void CheckPointerContent(const T* _val) { checkf(IsNullPointer<T>(_val), TEXT("NullPointerException")); }
+	static void CheckPointerContent(const T* _val) { ensureAlwaysMsgf(IsNullPointer<T>(_val), TEXT("NullPointerException")); }
 };
 
 
