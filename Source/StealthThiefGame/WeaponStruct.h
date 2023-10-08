@@ -50,6 +50,10 @@ struct FWeaponStruct : public FTableRowBase
 	UPROPERTY(EditAnywhere, Category = Animation)
 	TObjectPtr<UAnimMontage> FireMontage;
 
+	//リロードのアニメーション
+	UPROPERTY(EditAnywhere, Category = Animation)
+	TObjectPtr<UAnimMontage> ReloadMontage;
+
 	//薬莢クラス
 	UPROPERTY(EditAnywhere, Category = Class)
 	TObjectPtr<UClass> AmmoClass;
@@ -57,6 +61,18 @@ struct FWeaponStruct : public FTableRowBase
 	//薬室位置
 	UPROPERTY(EditAnywhere, Category = SocketName)
 	FName DropAmmoSocketName;
+
+	//武器タイプ
+	UPROPERTY(EditAnywhere, Category = TypeName)
+	FName WeaponType;
+
+	//武器の名前
+	UPROPERTY(EditAnywhere, Category = WeaponName)
+	FText WeaponName;
+
+	//武器画像
+	UPROPERTY(EditAnywhere, Category = Texture)
+	TObjectPtr<UTexture2D> WeaponTexture;
 
 public:
 	FWeaponStruct();

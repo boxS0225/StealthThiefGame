@@ -52,6 +52,17 @@ AStealthThiefGameCharacter::AStealthThiefGameCharacter()
 
 	weaponInfo = nullptr;
 
+	FAmmoStruct ammo;
+	ammo.HoldAmmo = 100;
+	ammo.RemainAmmo = 0;
+	WeaponAmmoStruct.Add("Rifle", ammo);
+
+	ammo.HoldAmmo = 20;
+	WeaponAmmoStruct.Add("ShotGun", ammo);
+
+	ammo.HoldAmmo = 30;
+	WeaponAmmoStruct.Add("Pistol", ammo);
+
 	//メッシュとアニメーションの設定
 	auto mesh = GetMesh();
 
@@ -96,6 +107,17 @@ void AStealthThiefGameCharacter::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+
+	FAmmoStruct ammo;
+	ammo.HoldAmmo = 100;
+	ammo.RemainAmmo = 0;
+	WeaponAmmoStruct.Add("Rifle", ammo);
+
+	ammo.HoldAmmo = 20;
+	WeaponAmmoStruct.Add("ShotGun", ammo);
+
+	ammo.HoldAmmo = 30;
+	WeaponAmmoStruct.Add("Pistol", ammo);
 }
 
 void AStealthThiefGameCharacter::Tick(float DeltaTime)
@@ -135,6 +157,10 @@ void AStealthThiefGameCharacter::SetupPlayerInputComponent(class UInputComponent
 		//Fire
 		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &AStealthThiefGameCharacter::Fire_Start);
 		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &AStealthThiefGameCharacter::Fire_End);
+
+		//Reload
+		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Triggered, this, &AStealthThiefGameCharacter::ReLoad);
+
 	}
 
 }
@@ -215,6 +241,19 @@ void AStealthThiefGameCharacter::WeaponChange(const FInputActionValue& _value)
 		//武器チェンジ音を鳴らす
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(), weaponInfo->EquipSound, GetActorLocation());
 
+		AStealthThiefGameGameMode::CheckPointerContent<UUserWidget>(currentAmmoWidget);
+		currentAmmoWidget->AddToViewport();
+
+		if (currentAmmoWidget->Implements<UWidgetInterface>())
+		{
+			int remain, hold;
+			GetNumberOfAmmo(GetWeaponName(), remain, hold);
+
+			IWidgetInterface::Execute_SetAmmoWidget(currentAmmoWidget, remain, hold);
+
+			IWidgetInterface::Execute_SetDisplay(currentAmmoWidget, weaponInfo->WeaponName, weaponInfo->WeaponTexture);
+		}
+
 		//次の武器へ移動
 		equipWeaponCounter++;
 		//equipWeaponCounter += upDown <= 0 ? -1 : 1;
@@ -260,6 +299,9 @@ void AStealthThiefGameCharacter::WeaponChange(const FInputActionValue& _value)
 		//手から外して固定位置へ
 		EquipWeapon(false, item->WeaponSocketName, item->HasPistol);
 
+		AStealthThiefGameGameMode::CheckPointerContent<UUserWidget>(currentAmmoWidget);
+		currentAmmoWidget->RemoveFromParent();
+
 	}
 }
 
@@ -284,8 +326,8 @@ void AStealthThiefGameCharacter::Aiming_Pressed(const FInputActionValue& _value)
 	cameraboom->SetRelativeLocationAndRotation(aimVec, aimRot, false, nullptr, ETeleportType::None);
 
 	//ウィジェットの追加
-	AStealthThiefGameGameMode::CheckPointerContent<UUserWidget>(currentWidget);
-	currentWidget->AddToViewport();
+	AStealthThiefGameGameMode::CheckPointerContent<UUserWidget>(currentPointerWidget);
+	currentPointerWidget->AddToViewport();
 }
 
 void AStealthThiefGameCharacter::Aiming_Releassed(const FInputActionValue& _value)
@@ -308,8 +350,8 @@ void AStealthThiefGameCharacter::Aiming_Releassed(const FInputActionValue& _valu
 	cameraboom->SetRelativeLocationAndRotation(FVector::ZeroVector, FRotator::ZeroRotator, false, nullptr, ETeleportType::None);
 
 	//ウィジェットの削除
-	AStealthThiefGameGameMode::CheckPointerContent<UUserWidget>(currentWidget);
-	currentWidget->RemoveFromViewport();
+	AStealthThiefGameGameMode::CheckPointerContent<UUserWidget>(currentPointerWidget);
+	currentPointerWidget->RemoveFromParent();
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -348,6 +390,20 @@ void AStealthThiefGameCharacter::FireAnim()
 	//マズルフラッシュを生成
 	UGameplayStatics::SpawnEmitterAttached(weaponInfo->FireFlash, equipWeapon, weaponInfo->MuzzleSocketName);
 
+	//弾を減らす
+
+	if (currentAmmoWidget->Implements<UWidgetInterface>())
+	{
+		int remain, hold;
+		GetNumberOfAmmo(GetWeaponName(), remain, hold);
+		remain--;
+		remain = remain < 0 ? 0 : remain;
+
+		SetNuberOfAmmo(GetWeaponName(), remain, hold);
+
+		IWidgetInterface::Execute_SetAmmoWidget(currentAmmoWidget, remain, hold);
+	}
+
 	//反動アニメーション再生
 	PlayAnimMontage(weaponInfo->FireMontage);
 
@@ -355,11 +411,15 @@ void AStealthThiefGameCharacter::FireAnim()
 	GetWorld()->SpawnActor<AActor>(weaponInfo->AmmoClass, equipWeapon->GetSocketTransform(weaponInfo->DropAmmoSocketName));
 
 	//中心に弾が出るかの確認
-	//FVector boomVec = GetCameraBoom()->GetComponentLocation();
-	//FVector fwdVec = GetCameraBoom()->GetForwardVector();
-	//fwdVec *= 10000.f;
-	//FHitResult hit;
-	//GetWorld()->LineTraceSingleByChannel(hit, boomVec, boomVec + fwdVec, ECollisionChannel::ECC_Visibility);
+	FVector boomVec = GetCameraBoom()->GetComponentLocation();
+	FVector fwdVec = GetCameraBoom()->GetForwardVector();
+	fwdVec *= 10000.f;
+	FHitResult hit;
+	GetWorld()->LineTraceSingleByChannel(hit, boomVec, boomVec + fwdVec, ECollisionChannel::ECC_Visibility);
+	
+	AStealthThiefGameGameMode::CheckPointerContent<AActor>(hit.GetActor());
+
+	UGameplayStatics::ApplyDamage(hit.GetActor(), 10.f, GetWorld()->GetFirstPlayerController(), nullptr, nullptr);
 }
 
 //武器を装備
@@ -374,22 +434,37 @@ void AStealthThiefGameCharacter::EquipWeapon(const bool _hasWeapon, const FName 
 	}
 }
 
-void AStealthThiefGameCharacter::FireProcess()
+bool AStealthThiefGameCharacter::ReloadCheck()
 {
 	//地面にいない場合終了
-	if (!GetCharacterMovement()->IsMovingOnGround()) { return; }
+	if (!GetCharacterMovement()->IsMovingOnGround()) { return true; }
 
 	//武器を持っていない場合終了
-	if (!hasWeapon) { return; }
+	if (!hasWeapon) { return true; }
 
 	//エイムしていない場合終了
-	if (!isAim) { return; }
+	if (!isAim) { return true; }
 
 	//クールタイムなどで発砲できない場合終了
-	if (!canFire) { return; }
+	if (!canFire) { return true; }
 
 	//素手の場合終了
-	if (weaponInfo == nullptr) { return; }
+	if (weaponInfo == nullptr) { return true; }
+
+	//弾がない場合終了
+	int remain, hold;
+	GetNumberOfAmmo(GetWeaponName(), remain, hold);
+	if (remain <= 0) { return true; }
+
+	//リロード中の場合終了
+	if (GetIsReload()) { return true; }
+
+	return false;
+}
+
+void AStealthThiefGameCharacter::FireProcess()
+{
+	if (ReloadCheck()) { return; }
 
 	FireAnim();
 }
@@ -397,10 +472,17 @@ void AStealthThiefGameCharacter::FireProcess()
 //ウィジェットをインスタンスにする
 void AStealthThiefGameCharacter::CreateWidgetInstance()
 {
-	TSubclassOf<UUserWidget> widget = GetWidgetClass();
+	//ポインターのクラスをセット
+	TSubclassOf<UUserWidget> pointerWidget = GetWidgetPointerClass();
 
-	AStealthThiefGameGameMode::CheckPointerContent<UClass>(widget);
-	currentWidget = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), widget);
+	AStealthThiefGameGameMode::CheckPointerContent<UClass>(pointerWidget);
+	currentPointerWidget = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), pointerWidget);
+
+	TSubclassOf<UUserWidget> ammoWidget = GetWidgetAmmoClass();
+
+	AStealthThiefGameGameMode::CheckPointerContent<UClass>(ammoWidget);
+	currentAmmoWidget = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), ammoWidget);
+
 }
 
 FWeaponStruct* AStealthThiefGameCharacter::SarchWeapon(TArray<TObjectPtr<USkeletalMeshComponent>> _meshs, int _num)
@@ -411,4 +493,31 @@ FWeaponStruct* AStealthThiefGameCharacter::SarchWeapon(TArray<TObjectPtr<USkelet
 	AStealthThiefGameGameMode::CheckPointerContent<FWeaponStruct>(item);
 
 	return item;
+}
+
+void AStealthThiefGameCharacter::GetNumberOfAmmo(FName _weaponName, int& _remainAmmo, int& _holdAmmo) const
+{
+	auto ammo = WeaponAmmoStruct.Find(_weaponName);
+		
+	_remainAmmo = ammo->RemainAmmo;
+	_holdAmmo = ammo->HoldAmmo;
+}
+
+void AStealthThiefGameCharacter::SetNuberOfAmmo(FName _weaponName, int _remain, int _hold)
+{
+	FAmmoStruct ammo;
+
+	ammo.RemainAmmo = _remain;
+	ammo.HoldAmmo = _hold;
+
+	WeaponAmmoStruct.Add(_weaponName, ammo);
+}
+
+UAnimMontage* AStealthThiefGameCharacter::GetReloadAnim() const
+{
+	FName weapon = equipWeapon->ComponentTags[0];
+	FWeaponStruct* item = GetWeaponTable()->FindRow<FWeaponStruct>(weapon, "");
+	AStealthThiefGameGameMode::CheckPointerContent<FWeaponStruct>(item);
+
+	return item->ReloadMontage;
 }

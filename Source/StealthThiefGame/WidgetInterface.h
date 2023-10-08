@@ -4,11 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
-#include "AnimInterface.generated.h"
+#include "Blueprint/UserWidget.h"
+#include "WidgetInterface.generated.h"
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
-class UAnimInterface : public UInterface
+class UWidgetInterface : public UInterface
 {
 	GENERATED_BODY()
 };
@@ -16,23 +17,16 @@ class UAnimInterface : public UInterface
 /**
  * 
  */
-class STEALTHTHIEFGAME_API IAnimInterface
+class STEALTHTHIEFGAME_API IWidgetInterface
 {
 	GENERATED_BODY()
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
-	//武器を持つアニメーション
-	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "Interface")
-	void EquipState(const bool _hasWeapon, const bool _hasPistol);
-
-	//武器を持つアニメーション
-	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent, Category = "Interface")
-	void AimingState(const bool _isAiming);
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interface")
-	void FireCondition(const bool _canFire);
+	void SetAmmoWidget(const int _remain, const int _hold);
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interface")
-	void ReloadCount(const int _addCount);
+	void SetDisplay(const FText& _weaponName, UTexture2D* _texture);
 };
