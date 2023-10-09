@@ -33,6 +33,6 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SetMaterialParameter(UMaterialInstanceDynamic* _target, FName _paramName, float _value);
 
-	FORCEINLINE TObjectPtr<UMaterialInstanceDynamic> AddDissolveMesh(const TObjectPtr<UMaterialInstanceDynamic> _mid) { dissolveMeshs.Add(_mid); return _mid; }
+	FORCEINLINE TObjectPtr<UMaterialInstanceDynamic> AddDissolveMesh(const TObjectPtr<UMaterialInstanceDynamic> _mid) { dissolveMeshs.Emplace(_mid); return _mid; }
 	FORCEINLINE TObjectPtr<UMaterialInstanceDynamic> GetDissolveMesh(TObjectPtr<UMaterialInstanceDynamic> _target) const { int num = dissolveMeshs.Find(_target); return dissolveMeshs[num]; }
 };

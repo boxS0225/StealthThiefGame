@@ -6,10 +6,11 @@
 #include "GameFramework/Actor.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Engine/DataTable.h"
+#include "WeaponInterface.h"
 #include "WeaponBase.generated.h"
 
 UCLASS()
-class STEALTHTHIEFGAME_API AWeaponBase : public AActor
+class STEALTHTHIEFGAME_API AWeaponBase : public AActor, public IWeaponInterface
 {
 	GENERATED_BODY()
 	
@@ -34,5 +35,6 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
+	
+	virtual void SetPlayerSocket_Implementation() override;
 };

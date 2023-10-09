@@ -29,4 +29,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interface")
 	void SetDisplay(const FText& _weaponName, UTexture2D* _texture);
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interface")
+	void SetPercent(const float _percent);
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interface")
+	void CloseWidget();
 };

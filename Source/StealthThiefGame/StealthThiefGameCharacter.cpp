@@ -50,6 +50,8 @@ AStealthThiefGameCharacter::AStealthThiefGameCharacter()
 	aimVec = FVector(0.f, 100.f, 100.f);
 	aimRot = FRotator(0.f, 30.f, 40.f);
 
+	currentHealth = MaxHealth;
+
 	weaponInfo = nullptr;
 
 	FAmmoStruct ammo;
@@ -68,6 +70,8 @@ AStealthThiefGameCharacter::AStealthThiefGameCharacter()
 
 	USkeletalMesh* skMesh = LoadObject<USkeletalMesh>(nullptr, TEXT("/Game/AnimStarterPack/UE4_Mannequin/Mesh/SK_Mannequin.SK_Mannequin"));
 	mesh->SetSkeletalMesh(skMesh);
+
+	DissolveMesh = CreateDefaultSubobject<UDissolveMesh>(TEXT("DissolveMesh"));
 
 	//メッシュの位置と回転の調整
 	mesh->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, -90.0f), FRotator(0.0f, -90.0f, 0.0f));
@@ -167,6 +171,8 @@ void AStealthThiefGameCharacter::SetupPlayerInputComponent(class UInputComponent
 
 void AStealthThiefGameCharacter::Move(const FInputActionValue& _value)
 {
+	if (isDeath) { return; }
+
 	// input is a Vector2D
 	FVector2D MovementVector = _value.Get<FVector2D>();
 
@@ -192,6 +198,8 @@ void AStealthThiefGameCharacter::Move(const FInputActionValue& _value)
 
 void AStealthThiefGameCharacter::Look(const FInputActionValue& _value)
 {
+	if (isDeath) { return; }
+
 	// input is a Vector2D
 	FVector2D LookAxisVector = _value.Get<FVector2D>();
 
@@ -204,6 +212,8 @@ void AStealthThiefGameCharacter::Look(const FInputActionValue& _value)
 
 void AStealthThiefGameCharacter::Fire_Start(const FInputActionValue& _value)
 {
+	if (isDeath) { return; }
+
 	//タイマーのスタート(バインドする関数と、何秒区切りかと、ループするか)
 	GetWorldTimerManager().SetTimer(fireHandle, this, &AStealthThiefGameCharacter::FireProcess, 0.1f, true);
 
@@ -211,6 +221,8 @@ void AStealthThiefGameCharacter::Fire_Start(const FInputActionValue& _value)
 
 void AStealthThiefGameCharacter::Fire_End(const FInputActionValue& _value)
 {
+	if (isDeath) { return; }
+
 	FTimerManager& timerManager = GetWorldTimerManager();
 
 	// Handleに登録されたTimerの解放
@@ -224,6 +236,10 @@ void AStealthThiefGameCharacter::Fire_End(const FInputActionValue& _value)
 //ホイールで切り替え
 void AStealthThiefGameCharacter::WeaponChange(const FInputActionValue& _value)
 {
+	if (isDeath) { return; }
+
+	if (weaponMeshs.Num() <= 0) { return; }
+
 	//スクロールを獲得
 	float upDown = _value.Get<float>();
 	
@@ -307,6 +323,8 @@ void AStealthThiefGameCharacter::WeaponChange(const FInputActionValue& _value)
 
 void AStealthThiefGameCharacter::Aiming_Pressed(const FInputActionValue& _value)
 {
+	if (isDeath) { return; }
+
 	SetIsAim(true);
 
 	if (GetMyAnimInstance()->Implements<UAnimInterface>())
@@ -332,6 +350,8 @@ void AStealthThiefGameCharacter::Aiming_Pressed(const FInputActionValue& _value)
 
 void AStealthThiefGameCharacter::Aiming_Releassed(const FInputActionValue& _value)
 {
+	if (isDeath) { return; }
+
 	SetIsAim(false);
 
 	if (GetMyAnimInstance()->Implements<UAnimInterface>())
@@ -354,6 +374,67 @@ void AStealthThiefGameCharacter::Aiming_Releassed(const FInputActionValue& _valu
 	currentPointerWidget->RemoveFromParent();
 }
 
+float AStealthThiefGameCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	if (isDeath) { return 0.f; }
+
+	currentHealth -= DamageAmount;
+	currentHealth = currentHealth <= 0.0f ? 0.0f : currentHealth;
+
+	if (currentHealth <= 0.0f) { DieProcess(); };
+
+	float percent = currentHealth / MaxHealth;
+
+	//ウィジェットの追加
+	AStealthThiefGameGameMode::CheckPointerContent<UUserWidget>(currentHpWidget);
+	currentHpWidget->AddToViewport();
+
+	if (currentHpWidget->Implements<UWidgetInterface>())
+	{
+		IWidgetInterface::Execute_SetPercent(currentHpWidget, percent);
+	}
+
+	return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+}
+
+void AStealthThiefGameCharacter::DieProcess()
+{
+	isDeath = true;
+
+	SetIsAim(false);
+
+	if (GetMyAnimInstance()->Implements<UAnimInterface>())
+	{
+		IAnimInterface::Execute_AimingState(myAnimInstance, false);
+	}
+	//カメラを離す
+	auto cameraboom = GetCameraBoom();
+	cameraboom->TargetArmLength = 300.f;
+
+	//キャラを回転させる
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	bUseControllerRotationYaw = false;
+
+	//カメラを離す
+	cameraboom->SetRelativeLocationAndRotation(FVector::ZeroVector, FRotator::ZeroRotator, false, nullptr, ETeleportType::None);
+
+	//ウィジェットの削除
+	AStealthThiefGameGameMode::CheckPointerContent<UUserWidget>(currentPointerWidget);
+	currentPointerWidget->RemoveFromParent();
+
+	AStealthThiefGameGameMode::CheckPointerContent<UUserWidget>(currentAmmoWidget);
+	currentAmmoWidget->RemoveFromParent();
+
+	if (GetMyAnimInstance()->Implements<UAnimInterface>())
+	{
+		IAnimInterface::Execute_DeathCondition(GetMyAnimInstance(), isDeath);
+	}
+
+
+
+	ReStartPlayer();
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Interface
 
@@ -363,12 +444,19 @@ void AStealthThiefGameCharacter::AttachWeapon_Implementation(const FName _attach
 	//持っている武器のリストを追加
 	weaponMeshs.Emplace(_mesh);
 	//背負う
-	_mesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, _attachSocketName);
+	_mesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, _attachSocketName);
 }
 
 void AStealthThiefGameCharacter::FireCondition_Implementation(const bool _canFire)
 {
 	SetCanFire(_canFire);
+}
+
+void AStealthThiefGameCharacter::CloseWidget_Implementation()
+{
+	//ウィジェットの削除
+	AStealthThiefGameGameMode::CheckPointerContent<UUserWidget>(currentHpWidget);
+	currentHpWidget->RemoveFromParent();
 }
 
 //チームIDを返す
@@ -483,6 +571,9 @@ void AStealthThiefGameCharacter::CreateWidgetInstance()
 	AStealthThiefGameGameMode::CheckPointerContent<UClass>(ammoWidget);
 	currentAmmoWidget = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), ammoWidget);
 
+	TSubclassOf<UUserWidget> hpWidget = GetWidgetHpClass();
+	AStealthThiefGameGameMode::CheckPointerContent<UClass>(hpWidget);
+	currentHpWidget = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), hpWidget);
 }
 
 FWeaponStruct* AStealthThiefGameCharacter::SarchWeapon(TArray<TObjectPtr<USkeletalMeshComponent>> _meshs, int _num)

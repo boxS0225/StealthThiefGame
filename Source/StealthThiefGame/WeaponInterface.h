@@ -24,4 +24,7 @@ class STEALTHTHIEFGAME_API IWeaponInterface
 public:
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interface")
 	void AttachWeapon(const FName _attachSocketName, USkeletalMeshComponent* _mesh);
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interface")
+	void SetPlayerSocket();
 };

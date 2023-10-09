@@ -7,6 +7,7 @@
 // Sets default values for this component's properties
 UDissolveMesh::UDissolveMesh()
 {
+
 }
 
 UMaterialInstanceDynamic* UDissolveMesh::CreateDissolveMesh(UPrimitiveComponent* _mesh, int _elementIndex)
@@ -16,7 +17,7 @@ UMaterialInstanceDynamic* UDissolveMesh::CreateDissolveMesh(UPrimitiveComponent*
 	//スケルタルメッシュをセット
 	if (skMesh != nullptr)
 	{
-		auto material = AddDissolveMesh(_mesh->CreateDynamicMaterialInstance(_elementIndex));
+		auto material = AddDissolveMesh(skMesh->CreateDynamicMaterialInstance(_elementIndex));
 		return material;
 	}
 
@@ -24,7 +25,7 @@ UMaterialInstanceDynamic* UDissolveMesh::CreateDissolveMesh(UPrimitiveComponent*
 	//スタティックメッシュをセット
 	if (skMesh != nullptr)
 	{
-		auto material = AddDissolveMesh(_mesh->CreateDynamicMaterialInstance(_elementIndex));
+		auto material = AddDissolveMesh(stMesh->CreateDynamicMaterialInstance(_elementIndex));
 		return material;
 	}
 

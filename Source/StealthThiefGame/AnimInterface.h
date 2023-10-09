@@ -35,4 +35,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interface")
 	void ReloadCount(const int _addCount);
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interface")
+	void DeathCondition(const bool _isDeath);
 };

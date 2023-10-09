@@ -14,6 +14,7 @@
 #include "WeaponInterface.h"
 #include "WidgetInterface.h"
 #include "AnimInterface.h"
+#include "DissolveMesh.h"
 #include "AmmoStruct.h"
 #include "WeaponStruct.h"
 #include "Animation/AnimMontage.h"
@@ -25,7 +26,7 @@
 
 
 UCLASS(config=Game)
-class AStealthThiefGameCharacter : public ACharacter, public IGenericTeamAgentInterface, public IWeaponInterface, public IAnimInterface
+class AStealthThiefGameCharacter : public ACharacter, public IGenericTeamAgentInterface, public IWeaponInterface, public IAnimInterface, public IWidgetInterface
 {
 	GENERATED_BODY()
 
@@ -85,9 +86,22 @@ class AStealthThiefGameCharacter : public ACharacter, public IGenericTeamAgentIn
 
 	TObjectPtr<UUserWidget> currentAmmoWidget;
 
+	//HP
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Widget, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UUserWidget> hpWidgetClass;
+
+	TObjectPtr<UUserWidget> currentHpWidget;
+
 	//弾
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Ammo, meta = (AllowPrivateAccess = "true"))
 	TMap<FName, FAmmoStruct> WeaponAmmoStruct;
+
+	//溶けるメッシュ
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Material, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UDissolveMesh> DissolveMesh;
+
+	TObjectPtr<UMaterialInstanceDynamic> bodyMesh;
+	TObjectPtr<UMaterialInstanceDynamic> logoMesh;
 
 	//エイムオフセット
 	FVector aimVec;
@@ -95,7 +109,7 @@ class AStealthThiefGameCharacter : public ACharacter, public IGenericTeamAgentIn
 
 	//敵に影響を与える情報リスト
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = AI, meta = (AllowPrivateAccess = "true"))
-		TObjectPtr<UAIPerceptionStimuliSourceComponent> StimuliSourceComponent;
+	TObjectPtr<UAIPerceptionStimuliSourceComponent> StimuliSourceComponent;
 
 	//持っている武器
 	TArray<TObjectPtr<USkeletalMeshComponent>> weaponMeshs;
@@ -108,6 +122,10 @@ class AStealthThiefGameCharacter : public ACharacter, public IGenericTeamAgentIn
 	//武器を持っているか
 	bool hasWeapon;
 
+	//HP
+	const float MaxHealth = 100.f;
+	float currentHealth;
+
 	//リロード中か
 	bool isReload = false;
 
@@ -116,6 +134,8 @@ class AStealthThiefGameCharacter : public ACharacter, public IGenericTeamAgentIn
 
 	//発砲できるか
 	bool canFire = true;
+
+	bool isDeath = false;
 
 	//連射用タイマー
 	FTimerHandle fireHandle;
@@ -154,7 +174,6 @@ class AStealthThiefGameCharacter : public ACharacter, public IGenericTeamAgentIn
 public:
 	AStealthThiefGameCharacter();
 
-
 protected:
 
 	/** Called for movement input */
@@ -167,10 +186,10 @@ protected:
 
 	//継承先で実装(練習)BPで実装する用の指定子なのでcppに関数を書くとエラーになる
 	UFUNCTION(BlueprintImplementableEvent)
-		void Sprint_Pressed(const FInputActionValue& _value);
+	void Sprint_Pressed(const FInputActionValue& _value);
 
 	UFUNCTION(BlueprintImplementableEvent)
-		void Sprint_Released(const FInputActionValue& _value);
+	void Sprint_Released(const FInputActionValue& _value);
 
 
 	//エイム用アクション
@@ -182,11 +201,18 @@ protected:
 	void Fire_End(const FInputActionValue& _value);
 
 	UFUNCTION(BlueprintImplementableEvent)
-		void ReLoad(const FInputActionValue& _value);
+	void ReLoad(const FInputActionValue& _value);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void ReStartPlayer();
+
+	void DieProcess();
 
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
 	// To add mapping context
 	virtual void BeginPlay();
@@ -215,6 +241,59 @@ public:
 
 	FORCEINLINE TSubclassOf<UUserWidget> GetWidgetPointerClass() const { return PointerWidgetClass; }
 	FORCEINLINE TSubclassOf<UUserWidget> GetWidgetAmmoClass() const { return AmmoWidgetClass; }
+	FORCEINLINE TSubclassOf<UUserWidget> GetWidgetHpClass() const { return hpWidgetClass; }
+
+	UFUNCTION(BlueprintCallable)
+		FName GetWeaponName() const { return equipWeapon->ComponentTags[0]; }
+
+	UFUNCTION(BlueprintCallable)
+		void GetNumberOfAmmo(FName _weaponName, int& _remainAmmo, int& _holdAmmo) const;
+
+	UFUNCTION(BlueprintCallable)
+		void SetNuberOfAmmo(FName _weaponName, int _remain, int _hold);
+
+	UFUNCTION(BlueprintCallable)
+		UUserWidget* GetAmmoWidget() const { return currentAmmoWidget; }
+
+	UFUNCTION(BlueprintCallable)
+		UAnimMontage* GetReloadAnim() const;
+
+	UFUNCTION(BlueprintCallable)
+		UAnimInstance* GetMyAnimInstance() const { return myAnimInstance; }
+
+	UFUNCTION(BlueprintCallable)
+		bool GetHasWeapon() const { return hasWeapon; }
+
+	UFUNCTION(BlueprintCallable)
+		bool GetCanFire() const { return canFire; }
+
+	UFUNCTION(BlueprintCallable)
+		bool GetIsReload() const { return isReload; }
+
+	UFUNCTION(BlueprintCallable)
+		void SetIsReload(const bool _isReload) { isReload = _isReload; }
+
+	UFUNCTION(BlueprintCallable)
+	TArray<USkeletalMeshComponent*> GetWeaponMesh() { return weaponMeshs; }
+
+	UFUNCTION(BlueprintCallable)
+	UMaterialInstanceDynamic* GetLogoMesh() const { return logoMesh; }
+
+	UFUNCTION(BlueprintCallable)
+	UMaterialInstanceDynamic* GetBodyMesh() const { return bodyMesh; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetLogoMesh(UMaterialInstanceDynamic* _mid)  { logoMesh = _mid; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetBodyMesh(UMaterialInstanceDynamic* _mid) { bodyMesh = _mid; }
+
+	UFUNCTION(BlueprintCallable)
+	UDissolveMesh* GetDissolveMesh() const { return DissolveMesh; }
+
+	UFUNCTION(BlueprintCallable)
+	UUserWidget* GetCurrentHpWidget() const { return currentHpWidget; }
+
 	//////////////////////////////////////////////インターフェースの実装
 	//武器を背負う
 	virtual void AttachWeapon_Implementation(const FName _attachSocketName, USkeletalMeshComponent* _mesh) override;
@@ -222,34 +301,6 @@ public:
 	//発砲可能かの設定
 	void FireCondition_Implementation(const bool _canFire);
 
-	UFUNCTION(BlueprintCallable)
-	FName GetWeaponName() const { return equipWeapon->ComponentTags[0]; }
-
-	UFUNCTION(BlueprintCallable)
-	void GetNumberOfAmmo(FName _weaponName, int& _remainAmmo, int& _holdAmmo) const;
-
-	UFUNCTION(BlueprintCallable)
-	void SetNuberOfAmmo(FName _weaponName, int _remain, int _hold);
-
-	UFUNCTION(BlueprintCallable)
-	UUserWidget* GetAmmoWidget() const {	return currentAmmoWidget; }
-
-	UFUNCTION(BlueprintCallable)
-	UAnimMontage* GetReloadAnim() const;
-
-	UFUNCTION(BlueprintCallable)
-	UAnimInstance* GetMyAnimInstance() const { return myAnimInstance; }
-
-	UFUNCTION(BlueprintCallable)
-	bool GetHasWeapon() const { return hasWeapon; }
-
-	UFUNCTION(BlueprintCallable)
-	bool GetCanFire() const { return canFire; }
-
-	UFUNCTION(BlueprintCallable)
-	bool GetIsReload() const { return isReload; }
-
-	UFUNCTION(BlueprintCallable)
-	void SetIsReload(const bool _isReload) { isReload = _isReload; }
+	virtual void CloseWidget_Implementation() override;
 };
 
