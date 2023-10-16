@@ -20,6 +20,7 @@ public:
 	AStealthThiefGameGameMode();
 
 	static const int PlayerTeam = 1;
+	static const int EnemyTeam = 10;
 
 	//空配列かチェック
 	template<typename T>

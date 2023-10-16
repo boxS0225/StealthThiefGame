@@ -4,6 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "AIController.h"
+#include "Perception/AISenseConfig_Sight.h"
+#include "Perception/AISenseConfig_Hearing.h"
+#include "Perception/AIPerceptionComponent.h"
 #include "StealthThiefGameGameMode.h"
 #include "EnemyAIControllerBase.generated.h"
 
@@ -15,16 +18,26 @@ class STEALTHTHIEFGAME_API AEnemyAIControllerBase : public AAIController
 {
 	GENERATED_BODY()
 
+protected:
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = AI, meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UBehaviorTree> MyBehaviorTree;
+	TObjectPtr<UBehaviorTree> MyBehaviorTree = nullptr;
+
+	TObjectPtr<UAISenseConfig_Sight> AISenseConfigSight = nullptr;
+	TObjectPtr<UAISenseConfig_Hearing> AISenseConfigHearing = nullptr;
 
 public:
 
 	AEnemyAIControllerBase();
 
+	ETeamAttitude::Type GetTeamAttitudeTowards(const AActor& Other) const override;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	TObjectPtr<UAISenseConfig_Sight> SetSenseSight();
+	TObjectPtr<UAISenseConfig_Hearing> SetSenseHearing();
 
 public:
 

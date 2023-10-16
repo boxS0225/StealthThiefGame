@@ -107,10 +107,6 @@ class AStealthThiefGameCharacter : public ACharacter, public IGenericTeamAgentIn
 	FVector aimVec;
 	FRotator aimRot;
 
-	//敵に影響を与える情報リスト
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = AI, meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UAIPerceptionStimuliSourceComponent> StimuliSourceComponent;
-
 	//持っている武器
 	TArray<TObjectPtr<USkeletalMeshComponent>> weaponMeshs;
 
@@ -125,6 +121,10 @@ class AStealthThiefGameCharacter : public ACharacter, public IGenericTeamAgentIn
 	//HP
 	const float MaxHealth = 100.f;
 	float currentHealth;
+
+	//エイムのズーム
+	bool isZoom = false;
+	float currentCameraLerp = 0.0f;
 
 	//リロード中か
 	bool isReload = false;
@@ -145,12 +145,20 @@ class AStealthThiefGameCharacter : public ACharacter, public IGenericTeamAgentIn
 
 	//装備品データ
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = DataTable, meta = (AllowPrivateAccess = "true"))
-		TObjectPtr<UDataTable> WeaponTable;
+	TObjectPtr<UDataTable> WeaponTable;
 
 	FWeaponStruct* weaponInfo;
 
+protected:
+
 	//チーム分け用変数
 	struct FGenericTeamId TeamId;
+
+	//敵に影響を与える情報リスト
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = AI, meta = (AllowPrivateAccess = "true"))
+	UAIPerceptionStimuliSourceComponent* StimuliSourceComponent = nullptr;
+
+	virtual void PostInitializeComponents() override;
 
 	//チーム分け用関数をインターフェースからオーバーライド
 	virtual FGenericTeamId GetGenericTeamId() const override;

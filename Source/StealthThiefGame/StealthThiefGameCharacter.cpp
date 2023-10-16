@@ -14,7 +14,7 @@ AStealthThiefGameCharacter::AStealthThiefGameCharacter()
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
-		
+
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
@@ -79,23 +79,36 @@ AStealthThiefGameCharacter::AStealthThiefGameCharacter()
 	//AIparceptionの設定
 	auto aiSource = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("StimuliSource"));
 
-	//セット
-	SetStimuliSourceComponent(aiSource);
 	//敵の感覚に影響させる登録
 	aiSource->bAutoRegister = true;
-	aiSource->RegisterForSense(UAISense_Sight::StaticClass());
-	aiSource->RegisterWithPerceptionSystem();
+
+	//セット
+	SetStimuliSourceComponent(aiSource);
 
 	//チームIDの設定
-	TeamId = FGenericTeamId(0);
+	TeamId = FGenericTeamId(AStealthThiefGameGameMode::PlayerTeam);
 
 	//マッピングなどは後から変更するかもしれないからここでは設定しないメッシュは練習で設定しておく
+}
+
+//マップに生成されてから
+void AStealthThiefGameCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	auto source = GetStimuliSourceComponent();
+
+	source->RegisterForSense(UAISense_Sight::StaticClass());
+	source->RegisterWithPerceptionSystem();
 }
 
 void AStealthThiefGameCharacter::BeginPlay()
 {
 	// Call the base class  
 	Super::BeginPlay();
+
+	StimuliSourceComponent->RegisterForSense(UAISense_Sight::StaticClass());
+	StimuliSourceComponent->RegisterWithPerceptionSystem();
 
 	//アニメーションインスタンスのゲット
 	SetMyAnimInstance(GetMesh()->GetAnimInstance());
@@ -127,6 +140,24 @@ void AStealthThiefGameCharacter::BeginPlay()
 void AStealthThiefGameCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (isZoom)
+	{
+		currentCameraLerp += 0.05f;
+	}
+	else
+	{
+		currentCameraLerp -= 0.05f;
+	}
+	
+	currentCameraLerp = FMath::Clamp(currentCameraLerp, 0.0f, 1.0f);
+
+	auto vec = FMath::Lerp(FVector::ZeroVector, aimVec, currentCameraLerp);
+	auto rot = FMath::Lerp(FRotator::ZeroRotator, aimRot, currentCameraLerp);
+
+	//カメラオフセットの移動
+	GetCameraBoom()->TargetArmLength = FMath::Lerp(300.f, 150.f, currentCameraLerp);
+	GetCameraBoom()->SetRelativeLocationAndRotation(vec, rot, false, nullptr, ETeleportType::None);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -258,6 +289,7 @@ void AStealthThiefGameCharacter::WeaponChange(const FInputActionValue& _value)
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(), weaponInfo->EquipSound, GetActorLocation());
 
 		AStealthThiefGameGameMode::CheckPointerContent<UUserWidget>(currentAmmoWidget);
+		currentAmmoWidget = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), GetWidgetAmmoClass());
 		currentAmmoWidget->AddToViewport();
 
 		if (currentAmmoWidget->Implements<UWidgetInterface>())
@@ -327,6 +359,8 @@ void AStealthThiefGameCharacter::Aiming_Pressed(const FInputActionValue& _value)
 
 	SetIsAim(true);
 
+	isZoom = true;
+
 	if (GetMyAnimInstance()->Implements<UAnimInterface>())
 	{
 		IAnimInterface::Execute_AimingState(myAnimInstance, true);
@@ -334,17 +368,14 @@ void AStealthThiefGameCharacter::Aiming_Pressed(const FInputActionValue& _value)
 	//カメラアームを寄せる
 	auto cameraboom = GetCameraBoom();
 
-	cameraboom->TargetArmLength = 150.f;
-
 	//キャラを回転させない
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 	bUseControllerRotationYaw = true;
 
-	//カメラを寄せる
-	cameraboom->SetRelativeLocationAndRotation(aimVec, aimRot, false, nullptr, ETeleportType::None);
-
 	//ウィジェットの追加
 	AStealthThiefGameGameMode::CheckPointerContent<UUserWidget>(currentPointerWidget);
+	if (currentPointerWidget->IsInViewport()) { currentPointerWidget->RemoveFromParent(); }
+	currentPointerWidget = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), GetWidgetPointerClass());
 	currentPointerWidget->AddToViewport();
 }
 
@@ -354,20 +385,18 @@ void AStealthThiefGameCharacter::Aiming_Releassed(const FInputActionValue& _valu
 
 	SetIsAim(false);
 
+	isZoom = false;
+
 	if (GetMyAnimInstance()->Implements<UAnimInterface>())
 	{
 		IAnimInterface::Execute_AimingState(myAnimInstance, false);
 	}
 	//カメラを離す
 	auto cameraboom = GetCameraBoom();
-	cameraboom->TargetArmLength = 300.f;
 
 	//キャラを回転させる
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	bUseControllerRotationYaw = false;
-
-	//カメラを離す
-	cameraboom->SetRelativeLocationAndRotation(FVector::ZeroVector, FRotator::ZeroRotator, false, nullptr, ETeleportType::None);
 
 	//ウィジェットの削除
 	AStealthThiefGameGameMode::CheckPointerContent<UUserWidget>(currentPointerWidget);
@@ -429,8 +458,6 @@ void AStealthThiefGameCharacter::DieProcess()
 	{
 		IAnimInterface::Execute_DeathCondition(GetMyAnimInstance(), isDeath);
 	}
-
-
 
 	ReStartPlayer();
 }
