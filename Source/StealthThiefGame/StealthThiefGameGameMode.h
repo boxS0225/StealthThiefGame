@@ -19,6 +19,8 @@ class AStealthThiefGameGameMode : public AGameModeBase
 public:
 	AStealthThiefGameGameMode();
 
+	static const int PlayerTeam = 1;
+
 	//空配列かチェック
 	template<typename T>
 	static void CheckArraySize(const TArray<T> _val) { ensureAlwaysMsgf(IsEmptyArray(_val.Num()), TEXT("NullArrayException")); }
