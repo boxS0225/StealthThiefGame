@@ -22,7 +22,7 @@ AAmmoBase::AAmmoBase()
 
 	//物理挙動をするようにする
 	GetAmmoMesh()->SetSimulatePhysics(true);
-	GetAmmoMesh()->SetMassOverrideInKg(NAME_None, 0.01f, true);
+	//GetAmmoMesh()->SetMassOverrideInKg(NAME_None, 0.01f, true);
 
 	//ルートの下に配置
 	GetAmmoMesh()->SetupAttachment(RootComponent);

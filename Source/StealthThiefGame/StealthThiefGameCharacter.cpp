@@ -27,7 +27,7 @@ AStealthThiefGameCharacter::AStealthThiefGameCharacter()
 
 	// Note: For faster iteration times these variables, and many more, can be tweaked in the Character Blueprint
 	// instead of recompiling to adjust them
-	charaMove->JumpZVelocity = 700.f;
+	charaMove->JumpZVelocity = 350.f;
 	charaMove->AirControl = 0.35f;
 	charaMove->MaxWalkSpeed = 300.f;
 	charaMove->MinAnalogWalkSpeed = 20.f;
@@ -124,17 +124,6 @@ void AStealthThiefGameCharacter::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
-
-	FAmmoStruct ammo;
-	ammo.HoldAmmo = 100;
-	ammo.RemainAmmo = 0;
-	WeaponAmmoStruct.Add("Rifle", ammo);
-
-	ammo.HoldAmmo = 20;
-	WeaponAmmoStruct.Add("ShotGun", ammo);
-
-	ammo.HoldAmmo = 30;
-	WeaponAmmoStruct.Add("Pistol", ammo);
 }
 
 void AStealthThiefGameCharacter::Tick(float DeltaTime)
@@ -289,7 +278,6 @@ void AStealthThiefGameCharacter::WeaponChange(const FInputActionValue& _value)
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(), weaponInfo->EquipSound, GetActorLocation());
 
 		AStealthThiefGameGameMode::CheckPointerContent<UUserWidget>(currentAmmoWidget);
-		currentAmmoWidget = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), GetWidgetAmmoClass());
 		currentAmmoWidget->AddToViewport();
 
 		if (currentAmmoWidget->Implements<UWidgetInterface>())
@@ -341,6 +329,10 @@ void AStealthThiefGameCharacter::WeaponChange(const FInputActionValue& _value)
 		//持っている武器リストから取得
 		FWeaponStruct* item = SarchWeapon(weaponMeshs, num);
 
+		//アニメーション停止
+		StopAnimMontage(GetReloadAnim());
+		SetIsReload(false);
+
 		//武器を外す
 		weaponInfo = nullptr;
 
@@ -374,8 +366,6 @@ void AStealthThiefGameCharacter::Aiming_Pressed(const FInputActionValue& _value)
 
 	//ウィジェットの追加
 	AStealthThiefGameGameMode::CheckPointerContent<UUserWidget>(currentPointerWidget);
-	if (currentPointerWidget->IsInViewport()) { currentPointerWidget->RemoveFromParent(); }
-	currentPointerWidget = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), GetWidgetPointerClass());
 	currentPointerWidget->AddToViewport();
 }
 

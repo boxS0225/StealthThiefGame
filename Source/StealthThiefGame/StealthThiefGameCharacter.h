@@ -78,18 +78,21 @@ class AStealthThiefGameCharacter : public ACharacter, public IGenericTeamAgentIn
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Widget, meta = (AllowPrivateAccess = "true"))
 		TSubclassOf<UUserWidget> PointerWidgetClass;
 
+	UPROPERTY()
 	TObjectPtr<UUserWidget> currentPointerWidget;
 
 	//Žc’e
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Widget, meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UUserWidget> AmmoWidgetClass;
 
+	UPROPERTY()
 	TObjectPtr<UUserWidget> currentAmmoWidget;
 
 	//HP
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Widget, meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UUserWidget> hpWidgetClass;
 
+	UPROPERTY()
 	TObjectPtr<UUserWidget> currentHpWidget;
 
 	//’e
