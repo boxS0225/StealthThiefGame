@@ -187,10 +187,11 @@ public:
 
 protected:
 
-	/** Called for movement input */
+	
 	void Move(const FInputActionValue& _value);
 
-	/** Called for looking input */
+	virtual void Jump() override;
+	
 	void Look(const FInputActionValue& _value);
 
 	void WeaponChange(const FInputActionValue& _value);

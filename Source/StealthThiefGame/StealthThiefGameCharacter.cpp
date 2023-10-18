@@ -158,7 +158,7 @@ void AStealthThiefGameCharacter::SetupPlayerInputComponent(class UInputComponent
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
 		
 		//Jumping
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AStealthThiefGameCharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
 		//Moving
@@ -214,6 +214,18 @@ void AStealthThiefGameCharacter::Move(const FInputActionValue& _value)
 	AddMovementInput(ForwardDirection, MovementVector.Y);
 	AddMovementInput(RightDirection, MovementVector.X);
 
+}
+
+void AStealthThiefGameCharacter::Jump()
+{
+	Super::Jump();
+
+	//アニメーション停止
+	if (GetIsReload())
+	{
+		StopAnimMontage(GetReloadAnim());
+		SetIsReload(false);
+	}
 }
 
 void AStealthThiefGameCharacter::Look(const FInputActionValue& _value)
@@ -330,8 +342,11 @@ void AStealthThiefGameCharacter::WeaponChange(const FInputActionValue& _value)
 		FWeaponStruct* item = SarchWeapon(weaponMeshs, num);
 
 		//アニメーション停止
-		StopAnimMontage(GetReloadAnim());
-		SetIsReload(false);
+		if (GetIsReload())
+		{
+			StopAnimMontage(GetReloadAnim());
+			SetIsReload(false);
+		}
 
 		//武器を外す
 		weaponInfo = nullptr;
