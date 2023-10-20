@@ -179,6 +179,7 @@ void AStealthThiefGameCharacter::SetupPlayerInputComponent(class UInputComponent
 		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this, &AStealthThiefGameCharacter::Aiming_Releassed);
 
 		//Fire
+		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &AStealthThiefGameCharacter::Fire_Pressed);
 		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &AStealthThiefGameCharacter::Fire_Start);
 		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &AStealthThiefGameCharacter::Fire_End);
 
@@ -249,6 +250,28 @@ void AStealthThiefGameCharacter::Fire_Start(const FInputActionValue& _value)
 	//タイマーのスタート(バインドする関数と、何秒区切りかと、ループするか)
 	GetWorldTimerManager().SetTimer(fireHandle, this, &AStealthThiefGameCharacter::FireProcess, 0.1f, true);
 
+}
+
+void AStealthThiefGameCharacter::Fire_Pressed(const FInputActionValue& _value)
+{
+	//地面にいない場合終了
+	if (!GetCharacterMovement()->IsMovingOnGround()) { return; }
+
+	//武器を持っていない場合終了
+	if (!hasWeapon) { return; }
+
+	//エイムしていない場合終了
+	if (!isAim) { return; }
+
+	//素手の場合終了
+	if (weaponInfo == nullptr) { return; }
+
+	//弾がない場合終了
+	int remain, hold;
+	GetNumberOfAmmo(GetWeaponName(), remain, hold);
+	if (remain > 0) { return; }
+
+	ReLoad(_value);
 }
 
 void AStealthThiefGameCharacter::Fire_End(const FInputActionValue& _value)

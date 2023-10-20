@@ -210,6 +210,7 @@ protected:
 
 	//”­–CƒAƒNƒVƒ‡ƒ“
 	void Fire_Start(const FInputActionValue& _value);
+	void Fire_Pressed(const FInputActionValue& _value);
 	void Fire_End(const FInputActionValue& _value);
 
 	UFUNCTION(BlueprintImplementableEvent)
