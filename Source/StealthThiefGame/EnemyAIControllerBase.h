@@ -7,7 +7,6 @@
 #include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AISenseConfig_Hearing.h"
 #include "Perception/AIPerceptionComponent.h"
-#include "EnemyInterface.h"
 #include "StealthThiefGameGameMode.h"
 #include "EnemyAIControllerBase.generated.h"
 
@@ -15,7 +14,7 @@
  * 
  */
 UCLASS()
-class STEALTHTHIEFGAME_API AEnemyAIControllerBase : public AAIController, public IEnemyInterface
+class STEALTHTHIEFGAME_API AEnemyAIControllerBase : public AAIController
 {
 	GENERATED_BODY()
 
@@ -39,8 +38,6 @@ protected:
 
 	TObjectPtr<UAISenseConfig_Sight> SetSenseSight();
 	TObjectPtr<UAISenseConfig_Hearing> SetSenseHearing();
-
-	virtual void Attack_Implementation() override;
 
 public:
 

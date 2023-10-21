@@ -3,6 +3,7 @@
 
 #include "EnemyBase.h"
 #include "Components/CapsuleComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GenericTeamAgentInterface.h"
 
@@ -48,6 +49,10 @@ AEnemyBase::AEnemyBase()
 	USkeletalMesh* weaponSkMesh = LoadObject<USkeletalMesh>(nullptr, TEXT("/Game/MilitaryWeapSilver/Weapons/Assault_Rifle_A.Assault_Rifle_A"));
 	weaponMesh->SetSkeletalMesh(weaponSkMesh);
 
+ 	MovePoints = CreateDefaultSubobject<UMovePointManager>(TEXT("MovePoints"));
+
+	MovePoints->SetupAttachment(mesh);
+
 	//武器メッシュの配置
 	weaponMesh->SetupAttachment(mesh);
 }
@@ -57,7 +62,7 @@ void AEnemyBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	EquipWeapon(TEXT("Rifle"));
+	EquipWeapon(weaponName);
 }
 
 // Called every frame
@@ -82,4 +87,32 @@ void AEnemyBase::EquipWeapon(FName _weapon)
 	
 	//セット
 	GetWeaponMesh()->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, item->EquipWeaponSocketName);
+}
+
+void AEnemyBase::Attack_Implementation()
+{
+	FWeaponStruct* item = GetWeaponTable()->FindRow<FWeaponStruct>(weaponName, "");
+
+	//音を鳴らす
+	//UGameplayStatics::PlaySoundAtLocation(GetWorld(), weaponInfo->FireSound, GetActorLocation(), 1.f, 1.f, 0.f);
+	UGameplayStatics::PlaySound2D(GetWorld(), item->FireSound);
+
+	//マズルフラッシュを生成
+	UGameplayStatics::SpawnEmitterAttached(item->FireFlash, WeaponMesh, item->MuzzleSocketName);
+
+	//反動アニメーション再生
+	PlayAnimMontage(item->FireMontage);
+
+	//薬莢生成
+	GetWorld()->SpawnActor<AActor>(item->AmmoClass, WeaponMesh->GetSocketTransform(item->DropAmmoSocketName));
+
+	//中心に弾が出るかの確認
+	FVector startVec = WeaponMesh->GetSocketLocation(item->MuzzleSocketName);
+	FVector fwdVec = startVec.ForwardVector;
+	fwdVec *= 10000.f;
+	FHitResult hit;
+	GetWorld()->LineTraceSingleByChannel(hit, startVec, startVec + fwdVec, ECollisionChannel::ECC_Visibility);
+
+	if (hit.GetActor() != nullptr)
+		UGameplayStatics::ApplyDamage(hit.GetActor(), 10.f, GetWorld()->GetFirstPlayerController(), nullptr, nullptr);
 }

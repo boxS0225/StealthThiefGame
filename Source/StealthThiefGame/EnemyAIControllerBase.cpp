@@ -55,10 +55,6 @@ TObjectPtr<UAISenseConfig_Hearing> AEnemyAIControllerBase::SetSenseHearing()
 	return sense;
 }
 
-void AEnemyAIControllerBase::Attack_Implementation()
-{
-}
-
 //自身に対する相手の振る舞い（友好・中立・敵対）
 ETeamAttitude::Type AEnemyAIControllerBase::GetTeamAttitudeTowards(const AActor& Other) const
 {

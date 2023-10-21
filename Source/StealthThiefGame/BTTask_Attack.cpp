@@ -8,7 +8,7 @@ EBTNodeResult::Type UBTTask_Attack::ExecuteTask(UBehaviorTreeComponent& OwnerCom
 {
 	if (OwnerComp.Implements<UEnemyInterface>())
 	{
-		AAIController* aIOwner = OwnerComp.GetAIOwner(); // to get the controller
+		AAIController* aIOwner = OwnerComp.GetAIOwner();
 		APawn* pawn = aIOwner->GetPawn();
 
 		//ƒLƒƒƒ‰‚²‚Æ‚ÌUŒ‚‚ğ‚·‚é

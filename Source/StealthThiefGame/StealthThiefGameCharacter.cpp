@@ -560,9 +560,8 @@ void AStealthThiefGameCharacter::FireAnim()
 	FHitResult hit;
 	GetWorld()->LineTraceSingleByChannel(hit, boomVec, boomVec + fwdVec, ECollisionChannel::ECC_Visibility);
 	
-	AStealthThiefGameGameMode::CheckPointerContent<AActor>(hit.GetActor());
-
-	UGameplayStatics::ApplyDamage(hit.GetActor(), 10.f, GetWorld()->GetFirstPlayerController(), nullptr, nullptr);
+	if (hit.GetActor() != nullptr)
+		UGameplayStatics::ApplyDamage(hit.GetActor(), 10.f, GetWorld()->GetFirstPlayerController(), nullptr, nullptr);
 }
 
 //•Ší‚ğ‘•”õ

@@ -16,6 +16,8 @@ class STEALTHTHIEFGAME_API UMovePointManager : public USceneComponent
 	UPROPERTY(EditAnywhere, Category = Points, Meta = (MakeEditWidget = true))
 	TArray<FVector> MovePoints;
 
+	int currentPointIndex = 0;
+
 public:	
 	// Sets default values for this component's properties
 	UMovePointManager();
@@ -31,4 +33,10 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	FVector GetMovePoint(const int _num) const { return MovePoints[_num]; }
+
+	UFUNCTION(BlueprintCallable)
+	int GetPointIndex() const { return currentPointIndex; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetPointIndex(const int _num)  { currentPointIndex = _num; }
 };

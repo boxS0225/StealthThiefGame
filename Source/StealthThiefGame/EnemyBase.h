@@ -8,10 +8,12 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "EnemyAIControllerBase.h"
 #include "WeaponStruct.h"
+#include "MovePointManager.h"
+#include "EnemyInterface.h"
 #include "EnemyBase.generated.h"
 
 UCLASS()
-class AEnemyBase : public ACharacter
+class AEnemyBase : public ACharacter, public IEnemyInterface
 {
 	GENERATED_BODY()
 
@@ -21,6 +23,11 @@ class AEnemyBase : public ACharacter
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = DataTable, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UDataTable> WeaponTable;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = DataTable, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UMovePointManager> MovePoints;
+
+	const FName weaponName = TEXT("Rifle");
 
 	//ïêäÌëïíÖ
 	void EquipWeapon(FName _weapon);
@@ -32,6 +39,8 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	virtual void Attack_Implementation() override;
 
 public:	
 	// Called every frame
