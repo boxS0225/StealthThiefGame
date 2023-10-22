@@ -7,7 +7,6 @@
 // Sets default values for this component's properties
 UMovePointManager::UMovePointManager()
 {
-	
 }
 
 
@@ -18,4 +17,12 @@ void UMovePointManager::BeginPlay()
 
 	//配列外参照チェック
 	AStealthThiefGameGameMode::CheckArraySize(GetMovePoints());
+}
+
+void UMovePointManager::SetNextPoint()
+{
+	//インクリメント
+	currentPointIndex = currentPointIndex + 1 < MovePoints.Num() ? currentPointIndex + 1 : 0;
+
+	SetPointIndex(currentPointIndex);
 }

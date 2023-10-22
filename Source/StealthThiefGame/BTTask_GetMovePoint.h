@@ -16,7 +16,6 @@ class STEALTHTHIEFGAME_API UBTTask_GetMovePoint : public UBTTask_BlackboardBase
 {
 	GENERATED_BODY()
 
-	void SetNextPath(UMovePointManager* , int _length);
 	void SetBlackBoardValue(UMovePointManager* _manager, UBlackboardComponent* _blackboard);
 
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;

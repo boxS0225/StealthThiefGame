@@ -3,22 +3,9 @@
 #include "AIController.h"
 #include "BTTask_GetMovePoint.h"
 
-void UBTTask_GetMovePoint::SetNextPath(UMovePointManager* _manager, int _length)
-{
-	//今の場所と配列の取得
-	int index = _manager->GetPointIndex();
-
-	//インクリメント
-	index = index + 1 < _length ? index + 1 : 0;
-
-	_manager->SetPointIndex(index);
-}
-
 void UBTTask_GetMovePoint::SetBlackBoardValue(UMovePointManager* _manager, UBlackboardComponent* _blackboard)
 {
-	int index = _manager->GetPointIndex();
-
-	_blackboard->SetValueAsVector(TEXT("TargetLocation"), _manager->GetMovePoint(index));
+	_blackboard->SetValueAsVector(BlackboardKey.SelectedKeyName, _manager->GetCurrentPoint());
 }
 
 EBTNodeResult::Type UBTTask_GetMovePoint::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
@@ -33,10 +20,8 @@ EBTNodeResult::Type UBTTask_GetMovePoint::ExecuteTask(UBehaviorTreeComponent& Ow
 
 	SetBlackBoardValue(manager, MyBlackboard);
 
-	auto points = manager->GetMovePoints();
-
 	//次の目的地をセット
-	SetNextPath(manager, points.Num());
+	manager->SetNextPoint();
 
 	return EBTNodeResult::Type();
 }

@@ -38,5 +38,11 @@ public:
 	int GetPointIndex() const { return currentPointIndex; }
 
 	UFUNCTION(BlueprintCallable)
+	FVector GetCurrentPoint() { return MovePoints[currentPointIndex]; }
+
+	UFUNCTION(BlueprintCallable)
 	void SetPointIndex(const int _num)  { currentPointIndex = _num; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetNextPoint();
 };
