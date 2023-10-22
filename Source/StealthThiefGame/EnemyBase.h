@@ -29,6 +29,10 @@ class AEnemyBase : public ACharacter, public IEnemyInterface
 
 	const FName weaponName = TEXT("Rifle");
 
+	//HP
+	const float MaxHealth = 100.f;
+	float currentHealth;
+
 	//•Ší‘•’…
 	void EquipWeapon(FName _weapon);
 
