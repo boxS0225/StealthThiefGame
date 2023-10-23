@@ -23,5 +23,5 @@ EBTNodeResult::Type UBTTask_GetMovePoint::ExecuteTask(UBehaviorTreeComponent& Ow
 	//次の目的地をセット
 	manager->SetNextPoint();
 
-	return EBTNodeResult::Type();
+	return EBTNodeResult::Succeeded;
 }
