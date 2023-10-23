@@ -6,6 +6,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "EnemyAIControllerBase.h"
+#include "BrainComponent.h"
 #include "AnimInterface.h"
 #include "GenericTeamAgentInterface.h"
 
@@ -144,6 +145,11 @@ float AEnemyBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent
 void AEnemyBase::DieProcess()
 {
 	isDeath = true;
+
+	//ビヘイビアツリーの停止
+	auto controller = Cast<AAIController>(AIControllerClass);
+	auto brain = controller->BrainComponent;
+	brain->StopLogic(TEXT("NPC Dying"));
 
 	if (GetMesh()->GetAnimInstance()->Implements<UAnimInterface>())
 	{

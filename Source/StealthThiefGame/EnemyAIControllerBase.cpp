@@ -29,7 +29,6 @@ void AEnemyAIControllerBase::BeginPlay()
 	AStealthThiefGameGameMode::CheckPointerContent<UBehaviorTree>(tree);
 	//ƒcƒŠ[‚ğ‹N“®
 	RunBehaviorTree(tree);
-
 }
 
 TObjectPtr<UAISenseConfig_Sight> AEnemyAIControllerBase::SetSenseSight()
