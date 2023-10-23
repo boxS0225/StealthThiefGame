@@ -33,8 +33,12 @@ class AEnemyBase : public ACharacter, public IEnemyInterface
 	const float MaxHealth = 100.f;
 	float currentHealth;
 
+	bool isDeath = false;
+
 	//•Ší‘•’…
 	void EquipWeapon(FName _weapon);
+
+	void DieProcess();
 
 public:
 	// Sets default values for this character's properties
@@ -47,6 +51,8 @@ protected:
 	virtual void Attack_Implementation() override;
 
 	virtual float GetHp_Implementation() override;
+
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
 public:	
 	// Called every frame

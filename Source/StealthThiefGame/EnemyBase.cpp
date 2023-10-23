@@ -6,6 +6,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "EnemyAIControllerBase.h"
+#include "AnimInterface.h"
 #include "GenericTeamAgentInterface.h"
 
 // Sets default values
@@ -124,4 +125,28 @@ void AEnemyBase::Attack_Implementation()
 float AEnemyBase::GetHp_Implementation()
 {
 	return GetcurrentHealth();
+}
+
+float AEnemyBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	if (isDeath) { return 0.0f; }
+
+	currentHealth -= DamageAmount;
+	currentHealth = currentHealth <= 0.0f ? 0.0f : currentHealth;
+
+	if (currentHealth <= 0.0f) { DieProcess(); };
+
+	float percent = currentHealth / MaxHealth;
+
+	return Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+}
+
+void AEnemyBase::DieProcess()
+{
+	isDeath = true;
+
+	if (GetMesh()->GetAnimInstance()->Implements<UAnimInterface>())
+	{
+		IAnimInterface::Execute_DeathCondition(GetMesh()->GetAnimInstance(), isDeath);
+	}
 }
