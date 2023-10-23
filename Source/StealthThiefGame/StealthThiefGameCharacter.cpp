@@ -351,11 +351,12 @@ void AStealthThiefGameCharacter::WeaponChange(const FInputActionValue& _value)
 	}
 	else//武器を持っている
 	{
-		if (!GetIsReload()) { return; }
-
-		//アニメーション停止
-		StopAnimMontage(GetReloadAnim());
-		SetIsReload(false);
+		if (GetIsReload())
+		{
+			//アニメーション停止
+			StopAnimMontage(GetReloadAnim());
+			SetIsReload(false);
+		}
 
 		FName weapon = equipWeapon->ComponentTags[0];
 		FWeaponStruct* item = GetWeaponTable()->FindRow<FWeaponStruct>(weapon, "");

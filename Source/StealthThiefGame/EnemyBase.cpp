@@ -5,6 +5,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "EnemyAIControllerBase.h"
 #include "GenericTeamAgentInterface.h"
 
 // Sets default values
@@ -57,6 +58,7 @@ AEnemyBase::AEnemyBase()
 	weaponMesh->SetupAttachment(mesh);
 
 	currentHealth = MaxHealth;
+
 }
 
 // Called when the game starts or when spawned
