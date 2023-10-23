@@ -7,8 +7,16 @@
 AEnemyAIControllerBase::AEnemyAIControllerBase()
 {
 	SetGenericTeamId(FGenericTeamId(AStealthThiefGameGameMode::EnemyTeam));
-
+	
 	TObjectPtr<UAIPerceptionComponent> AIPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>("PerceptionComponent");
+
+	///Game/StealthThiefGame/Enemy/Main/BT_MainEnemy
+	ConstructorHelpers::FObjectFinder<UBehaviorTree> tree(TEXT("/Game/StealthThiefGame/Enemy/BehindOfPlayer/BT_BehindOfPlayer"));
+
+	BehaviorComp = CreateDefaultSubobject<UBehaviorTreeComponent>(TEXT("BehaviorComp"));
+	BlackboardComp = CreateDefaultSubobject<UBlackboardComponent>(TEXT("BlackboardComp"));
+
+	SetMyBehaviorTree(tree.Object);
 
 	//感覚のセット
 	AISenseConfigSight = SetSenseSight();
@@ -23,12 +31,26 @@ AEnemyAIControllerBase::AEnemyAIControllerBase()
 
 void AEnemyAIControllerBase::BeginPlay()
 {
-	TObjectPtr<UBehaviorTree> tree = GetMyBehaviorTree();
+	//これないとOnProssess呼ばれない
+	Super::BeginPlay();
+}
 
-	//ツリーのNULLチェック
-	AStealthThiefGameGameMode::CheckPointerContent<UBehaviorTree>(tree);
-	//ツリーを起動
-	RunBehaviorTree(tree);
+void AEnemyAIControllerBase::OnPossess(APawn* InPawn)
+{
+	Super::OnPossess(InPawn);
+
+	BehaviorComp->StartTree(*GetMyBehaviorTree());
+	BlackboardComp->InitializeBlackboard(*(GetMyBehaviorTree()->BlackboardAsset));
+
+
+	//RunBehaviorTree(GetMyBehaviorTree());
+	//GetBlackboardComponent()->InitializeBlackboard(*(GetMyBehaviorTree()->BlackboardAsset));
+}
+
+void AEnemyAIControllerBase::OnUnPossess()
+{
+	Super::OnUnPossess();
+	BehaviorComp->StopTree();
 }
 
 TObjectPtr<UAISenseConfig_Sight> AEnemyAIControllerBase::SetSenseSight()

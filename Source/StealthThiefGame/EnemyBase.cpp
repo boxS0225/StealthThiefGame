@@ -17,12 +17,7 @@ AEnemyBase::AEnemyBase()
 	PrimaryActorTick.bCanEverTick = true;
 
 	// Set size for collision capsule
-	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
-
-	// Don't rotate when the controller rotates. Let that just affect the camera.
-	bUseControllerRotationPitch = false;
-	bUseControllerRotationYaw = false;
-	bUseControllerRotationRoll = false;
+	GetCapsuleComponent()->InitCapsuleSize(34.f, 96.0f);
 
 	// Configure character movement
 	auto charaMove = GetCharacterMovement();
@@ -54,7 +49,7 @@ AEnemyBase::AEnemyBase()
 
  	MovePoints = CreateDefaultSubobject<UMovePointManager>(TEXT("MovePoints"));
 
-	MovePoints->SetupAttachment(mesh);
+	MovePoints->SetupAttachment(RootComponent);
 
 	//武器メッシュの配置
 	weaponMesh->SetupAttachment(mesh);
