@@ -55,6 +55,8 @@ AEnemyBase::AEnemyBase()
 
 	//武器メッシュの配置
 	weaponMesh->SetupAttachment(mesh);
+
+	currentHealth = MaxHealth;
 }
 
 // Called when the game starts or when spawned
@@ -115,4 +117,9 @@ void AEnemyBase::Attack_Implementation()
 
 	if (hit.GetActor() != nullptr)
 		UGameplayStatics::ApplyDamage(hit.GetActor(), 10.f, GetWorld()->GetFirstPlayerController(), nullptr, nullptr);
+}
+
+float AEnemyBase::GetHp_Implementation()
+{
+	return GetcurrentHealth();
 }

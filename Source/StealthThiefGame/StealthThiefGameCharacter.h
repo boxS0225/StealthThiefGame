@@ -30,53 +30,51 @@ class AStealthThiefGameCharacter : public ACharacter, public IGenericTeamAgentIn
 {
 	GENERATED_BODY()
 
-		/** Camera boom positioning the camera behind the character */
-		UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-		TObjectPtr<USpringArmComponent> CameraBoom;
-
-	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-		TObjectPtr<UCameraComponent> FollowCamera;
+	TObjectPtr<USpringArmComponent> CameraBoom;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UCameraComponent> FollowCamera;
 
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		TObjectPtr<UInputMappingContext> DefaultMappingContext;
+	TObjectPtr<UInputMappingContext> DefaultMappingContext;
 
 	/** Jump Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		TObjectPtr<UInputAction> JumpAction;
+	TObjectPtr<UInputAction> JumpAction;
 
 	/** Move Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		TObjectPtr<UInputAction> MoveAction;
+	TObjectPtr<UInputAction> MoveAction;
 
 	/** Look Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		TObjectPtr<UInputAction> LookAction;
+	TObjectPtr<UInputAction> LookAction;
 
 	//武器替えアクション
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		TObjectPtr<UInputAction> WeaponChangeAction;
+	TObjectPtr<UInputAction> WeaponChangeAction;
 
 	//ジャンプアクション
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		TObjectPtr<UInputAction> SprintAction;
+	TObjectPtr<UInputAction> SprintAction;
 
 	//エイムアクション
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		TObjectPtr<UInputAction> AimAction;
+	TObjectPtr<UInputAction> AimAction;
 
 	//発砲アクション
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		TObjectPtr<UInputAction> FireAction;
+	TObjectPtr<UInputAction> FireAction;
 
 	//発砲アクション
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		TObjectPtr<UInputAction> ReloadAction;
+	TObjectPtr<UInputAction> ReloadAction;
 
 	//ポインター
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Widget, meta = (AllowPrivateAccess = "true"))
-		TSubclassOf<UUserWidget> PointerWidgetClass;
+	TSubclassOf<UUserWidget> PointerWidgetClass;
 
 	UPROPERTY()
 	TObjectPtr<UUserWidget> currentPointerWidget;
@@ -103,7 +101,10 @@ class AStealthThiefGameCharacter : public ACharacter, public IGenericTeamAgentIn
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Material, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UDissolveMesh> DissolveMesh;
 
+	UPROPERTY()
 	TObjectPtr<UMaterialInstanceDynamic> bodyMesh;
+
+	UPROPERTY()
 	TObjectPtr<UMaterialInstanceDynamic> logoMesh;
 
 	//エイムオフセット
@@ -111,12 +112,13 @@ class AStealthThiefGameCharacter : public ACharacter, public IGenericTeamAgentIn
 	FRotator aimRot;
 
 	//持っている武器
+	UPROPERTY()
 	TArray<TObjectPtr<USkeletalMeshComponent>> weaponMeshs;
 
+	UPROPERTY()
 	TObjectPtr<USkeletalMeshComponent> equipWeapon;
 
 	int equipWeaponNum = 0;
-	int equipWeaponCounter = 0;
 
 	//武器を持っているか
 	bool hasWeapon;
@@ -187,11 +189,16 @@ public:
 
 protected:
 
-	
+	//移動時に呼ばれる
 	void Move(const FInputActionValue& _value);
 
+	//ジャンプ時に呼ばれる
 	virtual void Jump() override;
+
+	//落ちた時に呼ばれる
+	virtual void Falling() override;
 	
+	//視点移動時に呼ばれる
 	void Look(const FInputActionValue& _value);
 
 	void WeaponChange(const FInputActionValue& _value);

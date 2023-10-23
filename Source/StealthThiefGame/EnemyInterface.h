@@ -25,4 +25,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interface")
 	void Attack();
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "Interface")
+	float GetHp();
 };

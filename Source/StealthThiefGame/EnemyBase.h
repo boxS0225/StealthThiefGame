@@ -46,6 +46,8 @@ protected:
 
 	virtual void Attack_Implementation() override;
 
+	virtual float GetHp_Implementation() override;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -56,4 +58,7 @@ public:
 	FORCEINLINE bool SetWeaponMesh(const TObjectPtr<USkeletalMeshComponent> _mesh) { WeaponMesh = _mesh; return WeaponMesh != nullptr; }
 
 	FORCEINLINE TObjectPtr<UDataTable> GetWeaponTable() const { return WeaponTable; }
+
+	UFUNCTION(BlueprintCallable)
+	float GetcurrentHealth() const { return currentHealth; }
 };

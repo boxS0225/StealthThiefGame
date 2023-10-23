@@ -221,12 +221,22 @@ void AStealthThiefGameCharacter::Jump()
 {
 	Super::Jump();
 
+	if (!GetIsReload()) { return; }
+
 	//アニメーション停止
-	if (GetIsReload())
-	{
-		StopAnimMontage(GetReloadAnim());
-		SetIsReload(false);
-	}
+	StopAnimMontage(GetReloadAnim());
+	SetIsReload(false);
+}
+
+void AStealthThiefGameCharacter::Falling()
+{
+	Super::Falling();
+
+	if (!GetIsReload()) { return; }
+
+	//アニメーション停止
+	StopAnimMontage(GetReloadAnim());
+	SetIsReload(false);
 }
 
 void AStealthThiefGameCharacter::Look(const FInputActionValue& _value)
@@ -297,12 +307,25 @@ void AStealthThiefGameCharacter::WeaponChange(const FInputActionValue& _value)
 
 	//スクロールを獲得
 	float upDown = _value.Get<float>();
-	
-	//番号の更新
-	equipWeaponNum = equipWeaponCounter;
 
 	if (!hasWeapon)//武器を持っていない
 	{
+		//番号の更新
+		equipWeaponNum = upDown <= 0 ? equipWeaponNum - 1 : equipWeaponNum + 1;
+
+		//配列外に行ったら戻す
+		if (equipWeaponNum < 0 || equipWeaponNum >= weaponMeshs.Num())
+		{
+			if (equipWeaponNum < 0)
+			{
+				equipWeaponNum = weaponMeshs.Num() - 1;
+			}
+			else
+			{
+				equipWeaponNum = 0;
+			}
+		}
+
 		//持っている武器リストから取得
 		weaponInfo = SarchWeapon(weaponMeshs, equipWeaponNum);
 
@@ -325,51 +348,17 @@ void AStealthThiefGameCharacter::WeaponChange(const FInputActionValue& _value)
 			IWidgetInterface::Execute_SetDisplay(currentAmmoWidget, weaponInfo->WeaponName, weaponInfo->WeaponTexture);
 		}
 
-		//次の武器へ移動
-		equipWeaponCounter++;
-		//equipWeaponCounter += upDown <= 0 ? -1 : 1;
-
-		//配列外に行ったら戻す
-		if (equipWeaponCounter < 0 || equipWeaponCounter >= weaponMeshs.Num())
-		{
-			if (equipWeaponCounter < 0)
-			{
-				equipWeaponCounter = weaponMeshs.Num() - 1;
-			}
-			else
-			{
-				equipWeaponCounter = 0;
-			}
-		}
 	}
 	else//武器を持っている
 	{
-		//現在の武器を取得
-		int num = equipWeaponNum - 1;
-		//int num = equipWeaponNum + upDown <= 0 ? -1 : 1;
-
-		//配列外に行ったら戻す
-		if (num < 0 || num >= weaponMeshs.Num())
-		{
-			if (num < 0)
-			{
-				num = weaponMeshs.Num() - 1;
-			}
-			else
-			{
-				num = 0;
-			}
-		}
-
-		//持っている武器リストから取得
-		FWeaponStruct* item = SarchWeapon(weaponMeshs, num);
+		if (!GetIsReload()) { return; }
 
 		//アニメーション停止
-		if (GetIsReload())
-		{
-			StopAnimMontage(GetReloadAnim());
-			SetIsReload(false);
-		}
+		StopAnimMontage(GetReloadAnim());
+		SetIsReload(false);
+
+		FName weapon = equipWeapon->ComponentTags[0];
+		FWeaponStruct* item = GetWeaponTable()->FindRow<FWeaponStruct>(weapon, "");
 
 		//武器を外す
 		weaponInfo = nullptr;
@@ -379,7 +368,6 @@ void AStealthThiefGameCharacter::WeaponChange(const FInputActionValue& _value)
 
 		AStealthThiefGameGameMode::CheckPointerContent<UUserWidget>(currentAmmoWidget);
 		currentAmmoWidget->RemoveFromParent();
-
 	}
 }
 

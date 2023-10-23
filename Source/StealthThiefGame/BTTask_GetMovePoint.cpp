@@ -5,12 +5,12 @@
 
 void UBTTask_GetMovePoint::SetBlackBoardValue(UMovePointManager* _manager, UBlackboardComponent* _blackboard)
 {
-	_blackboard->SetValueAsVector(BlackboardKey.SelectedKeyName, _manager->GetCurrentPoint());
+	_blackboard->SetValueAsVector(GetSelectedBlackboardKey(), _manager->GetCurrentPoint());
 }
 
 EBTNodeResult::Type UBTTask_GetMovePoint::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	UBlackboardComponent* MyBlackboard = OwnerComp.GetBlackboardComponent();
+	UBlackboardComponent* myBlackboard = OwnerComp.GetBlackboardComponent();
 	AAIController* aIOwner = OwnerComp.GetAIOwner();
 	APawn* pawn = aIOwner->GetPawn();
 
@@ -18,7 +18,7 @@ EBTNodeResult::Type UBTTask_GetMovePoint::ExecuteTask(UBehaviorTreeComponent& Ow
 
 	if (manager == nullptr) { return EBTNodeResult::Failed; }
 
-	SetBlackBoardValue(manager, MyBlackboard);
+	SetBlackBoardValue(manager, myBlackboard);
 
 	//次の目的地をセット
 	manager->SetNextPoint();

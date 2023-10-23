@@ -6,11 +6,11 @@
 
 EBTNodeResult::Type UBTTask_Attack::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	if (OwnerComp.Implements<UEnemyInterface>())
-	{
-		AAIController* aIOwner = OwnerComp.GetAIOwner();
-		APawn* pawn = aIOwner->GetPawn();
+	AAIController* aIOwner = OwnerComp.GetAIOwner();
+	APawn* pawn = aIOwner->GetPawn();
 
+	if (pawn->Implements<UEnemyInterface>())
+	{
 		//ƒLƒƒƒ‰‚²‚Æ‚ÌUŒ‚‚ğ‚·‚é
 		IEnemyInterface::Execute_Attack(pawn);
 	}
