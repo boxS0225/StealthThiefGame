@@ -56,13 +56,15 @@ AStealthThiefGameCharacter::AStealthThiefGameCharacter()
 
 	FAmmoStruct ammo;
 	ammo.HoldAmmo = 100;
-	ammo.RemainAmmo = 0;
+	ammo.RemainAmmo = 20;
 	WeaponAmmoStruct.Add("Rifle", ammo);
 
 	ammo.HoldAmmo = 20;
+	ammo.RemainAmmo = 4;
 	WeaponAmmoStruct.Add("ShotGun", ammo);
 
 	ammo.HoldAmmo = 30;
+	ammo.RemainAmmo = 8;
 	WeaponAmmoStruct.Add("Pistol", ammo);
 
 	//メッシュとアニメーションの設定
