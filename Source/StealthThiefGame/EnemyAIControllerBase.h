@@ -26,10 +26,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = AI, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UBehaviorTree> MyBehaviorTree = nullptr;
 
-	UPROPERTY()
-	UBehaviorTreeComponent* BehaviorComp;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = AI, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UBehaviorTreeComponent> BehaviorComp;
 
-	UPROPERTY()
 	UBlackboardComponent* BlackboardComp;
 
 
@@ -39,27 +38,27 @@ protected:
 	UPROPERTY()
 	TObjectPtr<UAISenseConfig_Hearing> AISenseConfigHearing = nullptr;
 
+public:
+
+	AEnemyAIControllerBase();
+
+protected:
+	virtual void BeginPlay() override;
+
+	virtual void Tick(float deltatime) override;
+
 	// AIControllerのPawn所持
 	virtual void OnPossess(class APawn* InPawn) override;
 
 	// AIControllerのPawn所持解除
 	virtual void OnUnPossess() override;
 
-public:
-
-	AEnemyAIControllerBase();
-
-	ETeamAttitude::Type GetTeamAttitudeTowards(const AActor& Other) const override;
-
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	virtual ETeamAttitude::Type GetTeamAttitudeTowards(const AActor& Other) const override;
 
 	TObjectPtr<UAISenseConfig_Sight> SetSenseSight();
 	TObjectPtr<UAISenseConfig_Hearing> SetSenseHearing();
 
 public:
-
 	//ツリーのゲッター・セッター・Nullチェック
 	UFUNCTION(BlueprintCallable)
 	UBehaviorTree* GetMyBehaviorTree() const { return MyBehaviorTree; }

@@ -2,21 +2,22 @@
 
 
 #include "EnemyAIControllerBase.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "StealthThiefGameGameMode.h"
 
 AEnemyAIControllerBase::AEnemyAIControllerBase()
 {
 	SetGenericTeamId(FGenericTeamId(AStealthThiefGameGameMode::EnemyTeam));
-	
-	TObjectPtr<UAIPerceptionComponent> AIPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>("PerceptionComponent");
 
 	///Game/StealthThiefGame/Enemy/Main/BT_MainEnemy
-	ConstructorHelpers::FObjectFinder<UBehaviorTree> tree(TEXT("/Game/StealthThiefGame/Enemy/BehindOfPlayer/BT_BehindOfPlayer"));
+	ConstructorHelpers::FObjectFinder<UBehaviorTree> tree(TEXT("/Script/AIModule.BehaviorTree'/Game/StealthThiefGame/Enemy/BehindOfPlayer/BT_BehindOfPlayer.BT_BehindOfPlayer'"));
 
 	BehaviorComp = CreateDefaultSubobject<UBehaviorTreeComponent>(TEXT("BehaviorComp"));
 	BlackboardComp = CreateDefaultSubobject<UBlackboardComponent>(TEXT("BlackboardComp"));
 
 	SetMyBehaviorTree(tree.Object);
+
+	TObjectPtr<UAIPerceptionComponent> AIPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>("PerceptionComponent");
 
 	//感覚のセット
 	AISenseConfigSight = SetSenseSight();
@@ -25,26 +26,33 @@ AEnemyAIControllerBase::AEnemyAIControllerBase()
 	//感覚情報を追加
 	AIPerceptionComponent->ConfigureSense(*AISenseConfigSight);
 	AIPerceptionComponent->ConfigureSense(*AISenseConfigHearing);
+	
+	//void Update(TArray<AActor*> const & updateActors);これをヘッダーへ
+	//AIPerceptionComponent->OnPerceptionUpdated.AddDynamic(this, &AEnemyAIControllerBase::Update);  更新イベントの紐づけ
 	AIPerceptionComponent->SetDominantSense(AISenseConfigSight->GetSenseImplementation());
-	SetPerceptionComponent(*AIPerceptionComponent);
+	//SetPerceptionComponent(*AIPerceptionComponent);
 }
 
 void AEnemyAIControllerBase::BeginPlay()
 {
-	//これないとOnProssess呼ばれない
 	Super::BeginPlay();
+}
+
+void AEnemyAIControllerBase::Tick(float deltatime)
+{
+
 }
 
 void AEnemyAIControllerBase::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
-
-	BehaviorComp->StartTree(*GetMyBehaviorTree());
-	BlackboardComp->InitializeBlackboard(*(GetMyBehaviorTree()->BlackboardAsset));
-
-
-	//RunBehaviorTree(GetMyBehaviorTree());
-	//GetBlackboardComponent()->InitializeBlackboard(*(GetMyBehaviorTree()->BlackboardAsset));
+	
+	if (BlackboardComp)
+	{
+		BlackboardComp->InitializeBlackboard(*MyBehaviorTree->BlackboardAsset);
+		//BlackboardComp->SetValueAsObject(TEXT("SelfActor"), this);
+	}
+	RunBehaviorTree(MyBehaviorTree);
 }
 
 void AEnemyAIControllerBase::OnUnPossess()
